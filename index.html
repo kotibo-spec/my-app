@@ -2,52 +2,122 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Core Alchemist</title>
+    <!-- 外部ライブラリ: レーダーチャート用 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
 </head>
 <body>
-
-    <!-- アプリ全体 -->
-    <div class="app-container">
-        
-        <!-- ヘッダー：ランクと名前 -->
-        <header>
-            <div id="rank-name" class="rank-text">UNRANKED</div>
-            <div id="title-name" class="title-text">見習い観測者</div>
-            <div class="level-indicator">Lv.<span id="level-val">1</span></div>
+    <div id="app">
+        <!-- ヘッダー：称号とレベル -->
+        <header class="app-header">
+            <div class="title-container">
+                <div id="main-title" class="main-title">【未醒の】放浪者</div>
+                <div class="level-badge">Lv.<span id="user-level">1</span></div>
+            </div>
+            <div class="xp-bar-container">
+                <div id="xp-bar" class="xp-bar-fill"></div>
+            </div>
         </header>
 
-        <!-- メインエリア：コアとスキルツリー -->
-        <main>
-            <div class="orbit-system">
-                <!-- 中央のコア -->
-                <div id="core" class="core-object"></div>
-                <!-- スキルノード（JSで自動生成） -->
-                <div id="skills-container"></div>
+        <!-- メイン：コアとスキルツリーの描画エリア -->
+        <main id="stage">
+            <div id="tree-container">
+                <!-- ここにJSでスキルツリーの枝が描画されます -->
+                <svg id="tree-svg"></svg>
+            </div>
+            <div id="core-wrapper">
+                <div id="core-circle" class="core"></div>
             </div>
         </main>
 
-        <!-- コントロールエリア -->
-        <div class="controls">
-            <!-- ログ表示窓 -->
-            <div id="log-window" class="log-box">
-                <p>システム起動... 待機中。</p>
-            </div>
+        <!-- フッター：ナビゲーション -->
+        <nav class="app-nav">
+            <button id="btn-status" class="nav-btn">
+                <span class="icon">👤</span>
+                <span class="label">ステータス</span>
+            </button>
+            <button id="btn-report" class="nav-btn primary">
+                <span class="icon">＋</span>
+                <span class="label">報告</span>
+            </button>
+            <button id="btn-tree-manage" class="nav-btn">
+                <span class="icon">🌿</span>
+                <span class="label">ツリー管理</span>
+            </button>
+        </nav>
 
-            <!-- アクションボタン -->
-            <div class="action-area">
-                <p class="guide-text">ポモドーロ完了の証拠を提出せよ</p>
-                <!-- 実際はファイル選択だが、カメラ風に見せる -->
-                <label for="file-upload" class="upload-btn">
-                    REPORT TASK (UPLOAD)
-                </label>
-                <input type="file" id="file-upload" accept="image/*" style="display:none;">
+        <!-- モーダル：ステータス & プロフィール -->
+        <div id="modal-status" class="modal hidden">
+            <div class="modal-content">
+                <button class="close-btn">×</button>
+                <h2>プロフィール</h2>
+                <div class="radar-chart-container">
+                    <canvas id="statusChart"></canvas>
+                </div>
+                <div id="sub-titles" class="sub-titles-list">
+                    <!-- サブ称号がここに並びます -->
+                </div>
+                <h3>所持素材</h3>
+                <div id="inventory" class="inventory-grid">
+                    <!-- 素材がここに並びます -->
+                </div>
+                <button id="btn-evolve" class="action-btn">全素材をコアに投入</button>
             </div>
         </div>
+
+        <!-- モーダル：タスク報告 -->
+        <div id="modal-report" class="modal hidden">
+            <div class="modal-content">
+                <button class="close-btn">×</button>
+                <h2>タスク完了報告</h2>
+                <div class="form-group">
+                    <label>タスクを選択</label>
+                    <select id="task-select"></select>
+                </div>
+                <div class="form-group">
+                    <label>ポモドーロ記録</label>
+                    <div class="pomo-input">
+                        <input type="number" id="pomo-work" placeholder="作業分" value="25">
+                        <span>分 ×</span>
+                        <input type="number" id="pomo-count" placeholder="セット" value="1">
+                        <span>セット</span>
+                    </div>
+                </div>
+                <button id="btn-submit-task" class="action-btn">完了を証明する</button>
+            </div>
+        </div>
+
+        <!-- モーダル：ツリー/タスク設定 -->
+        <div id="modal-config" class="modal hidden">
+            <div class="modal-content">
+                <button class="close-btn">×</button>
+                <h2>システム設定</h2>
+                <p>新しい枝（カテゴリ）やタスクを追加します。</p>
+                <div class="config-section">
+                    <h3>カテゴリ追加</h3>
+                    <input type="text" id="new-cat-name" placeholder="例：漫画">
+                    <button id="btn-add-category">枝を生成</button>
+                </div>
+                <hr>
+                <div class="config-section">
+                    <h3>タスク追加</h3>
+                    <input type="text" id="new-task-name" placeholder="例：ネーム">
+                    <select id="new-task-cat"></select>
+                    <select id="new-task-suffix">
+                        <!-- ここに業火、虚無などのリストが入ります -->
+                    </select>
+                    <button id="btn-add-task">登録</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 簡易ログ通知 -->
+        <div id="toast-container"></div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- 処理の順番を守るため、JSは後ほどお送りします -->
 </body>
 </html>
