@@ -26,7 +26,11 @@ function saveState() {
 
 function loadState() {
     const saved = localStorage.getItem('coreAlchemistData');
-    if (saved) state = JSON.parse(saved);
+    if (saved) {
+        const parsed = JSON.parse(saved);
+        // 古いデータとの互換性維持
+        state = Object.assign(state, parsed);
+    }
 }
 
 // --- 描画全般 ---
@@ -44,70 +48,92 @@ function updateHeader() {
     const userLevel = document.getElementById('user-level');
     const xpBar = document.getElementById('xp-bar');
 
+    // 最強属性を特定
     let maxAttr = "火";
     let maxVal = -1;
     CONFIG.ATTR_NAMES.forEach(a => {
-        if (state.stats[a] > maxVal) { maxVal = state.stats[a]; maxAttr = a; }
+        if (state.stats[a] > maxVal) {
+            maxVal = state.stats[a];
+            maxAttr = a;
+        }
     });
 
+    // 称号決定
     const prefixList = CONFIG.MAIN_PREFIX[maxAttr];
     const prefix = prefixList[Math.min(Math.floor((state.level - 1) / 3), prefixList.length - 1)];
-    const rank = CONFIG.MAIN_RANKS[Math.min(state.level - 1, CONFIG.MAIN_RANKS.length - 1)];
+    const rankName = CONFIG.MAIN_RANKS[Math.min(state.level - 1, CONFIG.MAIN_RANKS.length - 1)];
     
-    mainTitle.innerText = `【${prefix}】${rank}`;
+    mainTitle.innerText = `【${prefix}】${rankName}`;
     userLevel.innerText = state.level;
 
     const nextXp = state.level * 1000; 
-    xpBar.style.width = Math.min((state.xp / nextXp) * 100, 100) + "%";
+    const xpPercent = Math.min((state.xp / nextXp) * 100, 100);
+    xpBar.style.width = xpPercent + "%";
 }
 
 // 放射状スキルツリーの描画
 function renderStage() {
     const svg = document.getElementById('tree-svg');
     const container = document.getElementById('tree-container');
-    const nodes = document.querySelectorAll('.node');
-    nodes.forEach(n => n.remove());
+    
+    // 既存のノードと線をクリア
+    container.innerHTML = '';
     svg.innerHTML = '';
 
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight / 2;
 
     state.categories.forEach((cat, cIdx) => {
+        // カテゴリごとの角度（上から時計回り）
         const angle = (cIdx / state.categories.length) * 2 * Math.PI - Math.PI / 2;
         
         for (let i = 1; i <= 10; i++) {
-            const dist = 70 + (i * 45); // コアからの距離
+            const dist = 85 + (i * 48); // コアからの距離
             const x = centerX + Math.cos(angle) * dist;
             const y = centerY + Math.sin(angle) * dist;
 
-            // 線を描画（前のノードから）
-            const prevDist = 70 + ((i-1) * 45);
-            const px = (i === 1) ? centerX : centerX + Math.cos(angle) * prevDist;
-            const py = (i === 1) ? centerY : centerY + Math.sin(angle) * prevDist;
+            // 線を描画（前のノードまたはコアから繋ぐ）
+            const prevDist = (i === 1) ? 0 : 85 + ((i - 1) * 48);
+            const px = centerX + Math.cos(angle) * prevDist;
+            const py = centerY + Math.sin(angle) * prevDist;
 
             const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-            line.setAttribute("x1", px); line.setAttribute("y1", py);
-            line.setAttribute("x2", x); line.setAttribute("y2", y);
+            line.setAttribute("x1", px);
+            line.setAttribute("y1", py);
+            line.setAttribute("x2", x);
+            line.setAttribute("y2", y);
             line.setAttribute("stroke", i <= cat.rank ? "var(--accent-color)" : "#222");
             line.setAttribute("stroke-width", i <= cat.rank ? "2" : "1");
             svg.appendChild(line);
 
-            // ノード（ボタン）を描画
+            // ノード（ボタン）を作成
             const node = document.createElement('div');
+            node.className = 'node';
+            
+            const cost = CONFIG.TREE_COSTS[i - 1];
             const isLocked = i > cat.rank + 1;
-            const canUnlock = i === cat.rank + 1 && cat.points >= CONFIG.TREE_COSTS[i-1];
+            const canUnlock = i === cat.rank + 1 && cat.points >= cost;
+
+            if (isLocked) node.classList.add('locked');
+            if (canUnlock) node.classList.add('can-unlock');
+
+            // 座標セット
+            node.style.left = `${x}px`;
+            node.style.top = `${y}px`;
+            node.style.transform = 'translate(-50%, -50%)';
+
+            // 表示内容（10段階目は「真の」）
+            const subTitle = (i === 10) ? `真の${cat.name}` : `${cat.name}${CONFIG.SUB_TITLES[i-1]}`;
+            node.innerHTML = `<strong>${i}</strong><div style="font-size:7px; scale:0.8; white-space:nowrap;">${cat.name}</div>`;
             
-            node.className = `node ${isLocked ? 'locked' : ''} ${canUnlock ? 'can-unlock' : ''}`;
-            node.style.left = (x - 22) + "px";
-            node.style.top = (y - 22) + "px";
-            
-            // 称号（サブ称号）の表示
-            const subTitle = i === 10 ? `真の${cat.name}` : `${cat.name}${CONFIG.SUB_TITLES[i-1]}`;
-            node.innerHTML = `<span>${i}</span><div style="font-size:5px; transform:scale(0.8)">${cat.name}</div>`;
-            
-            node.onclick = () => {
-                if (canUnlock) unlockNode(cat.name, i);
-                else if (isLocked) showToast(`必要：${CONFIG.TREE_COSTS[i-1]}pt`);
+            // タップイベント
+            node.onclick = (e) => {
+                e.stopPropagation();
+                if (canUnlock) {
+                    unlockNode(cat.name, i);
+                } else {
+                    showToast(`${cat.name}習得まで あと ${cost - cat.points}pt`);
+                }
             };
             container.appendChild(node);
         }
@@ -117,25 +143,32 @@ function renderStage() {
 // --- ロジック：報告送信 ---
 function submitTask() {
     const taskName = document.getElementById('task-select').value;
-    const workMin = parseInt(document.getElementById('pomo-work').value);
-    const count = parseInt(document.getElementById('pomo-count').value);
-    if (!taskName) return showToast("タスクを登録してください");
+    const workMin = parseInt(document.getElementById('pomo-work').value) || 0;
+    const count = parseInt(document.getElementById('pomo-count').value) || 0;
+    
+    if (!taskName) return showToast("タスクを先に登録してください");
 
     const task = state.tasks.find(t => t.name === taskName);
     const totalWork = workMin * count;
 
     // 1. カテゴリポイント獲得 (ツリー用)
     const cat = state.categories.find(c => c.name === task.cat);
-    if (cat) cat.points += totalWork;
+    if (cat) {
+        cat.points += totalWork;
+    }
 
-    // 2. 素材ドロップ (30分毎に1個 + 確率)
+    // 2. 素材ドロップ (30分毎に1個 + 確率ボーナス)
     let dropCount = Math.floor(totalWork / 30);
-    if (Math.random() < (totalWork % 30) / 30) dropCount++;
+    if (Math.random() < (totalWork % 30) / 30) {
+        dropCount++;
+    }
 
     if (dropCount > 0) {
-        const matName = `【${task.cat}】${task.suffix}`;
-        state.inventory[matName] = (state.inventory[matName] || 0) + dropCount;
-        showToast(`${matName}を${dropCount}個獲得！`);
+        const matFullName = `【${task.cat}】${task.suffix}`;
+        state.inventory[matFullName] = (state.inventory[matFullName] || 0) + dropCount;
+        showToast(`${matFullName}を${dropCount}個抽出！`);
+    } else {
+        showToast("作業を確認。素材抽出には時間が足りません。");
     }
     
     closeAllModals();
@@ -146,31 +179,35 @@ function submitTask() {
 function evolveCore() {
     let totalGainXp = 0;
     let hasItems = false;
-    for (const name in state.inventory) {
-        const count = state.inventory[name];
+    
+    for (const fullName in state.inventory) {
+        const count = state.inventory[fullName];
         if (count <= 0) continue;
         hasItems = true;
 
-        const suffixName = name.split('】')[1];
-        const configSuffix = CONFIG.SUFFIXES.find(s => s.name === suffixName);
+        // "【カテゴリ】サフィックス" からサフィックス部分だけ抽出
+        const suffixOnly = fullName.split('】')[1];
+        const configSuffix = CONFIG.SUFFIXES.find(s => s.name === suffixOnly);
+        
         if (configSuffix) {
-            state.stats[configSuffix.attr] += count * 5;
-            totalGainXp += count * 100;
+            state.stats[configSuffix.attr] += count * 5; // ステータス上昇
+            totalGainXp += count * 100; // 経験値上昇
         }
     }
 
-    if (!hasItems) return showToast("素材がありません");
+    if (!hasItems) return showToast("捧げる素材がありません");
 
-    state.inventory = {};
+    state.inventory = {}; // 全消費
     state.xp += totalGainXp;
 
+    // レベルアップ処理
     while (state.xp >= state.level * 1000) {
         state.xp -= state.level * 1000;
         state.level++;
-        showToast("Lv UP!! 階級が上昇しました。");
+        showToast("Lv UP!! あなたの存在が昇華されました。");
     }
 
-    showToast("ステータスと経験値が上昇！");
+    showToast("ステータスと総合経験値が上昇！");
     updateRadarChart();
     renderAll();
 }
@@ -182,43 +219,59 @@ function unlockNode(catName, step) {
     if (cat.points >= cost) {
         cat.points -= cost;
         cat.rank = step;
-        showToast(`称号：${catName}${CONFIG.SUB_TITLES[step-1]} を獲得！`);
+        showToast(`称号：【${catName}${CONFIG.SUB_TITLES[step-1]}】を獲得！`);
         renderAll();
     }
 }
 
-// --- 設定操作 ---
+// --- 設定・イベント操作 ---
 function setupEventListeners() {
+    // 各種ボタン
     document.getElementById('btn-report').onclick = () => openModal('modal-report');
     document.getElementById('btn-tree-manage').onclick = () => openModal('modal-config');
     document.getElementById('btn-settings').onclick = () => openModal('modal-settings');
+    
+    // フォーム送信
     document.getElementById('btn-submit-task').onclick = submitTask;
     document.getElementById('btn-evolve').onclick = evolveCore;
 
+    // カテゴリ（枝）の追加
     document.getElementById('btn-add-category').onclick = () => {
-        const name = document.getElementById('new-cat-name').value;
+        const name = document.getElementById('new-cat-name').value.trim();
         if (name && !state.categories.find(c => c.name === name)) {
             state.categories.push({ name: name, points: 0, rank: 0 });
             document.getElementById('new-cat-name').value = "";
-            updateSelectBoxes(); renderAll();
+            updateSelectBoxes();
+            renderAll();
+            showToast(`新たな枝「${name}」が芽生えました。`);
         }
     };
 
+    // タスクの登録
     document.getElementById('btn-add-task').onclick = () => {
-        const name = document.getElementById('new-task-name').value;
+        const name = document.getElementById('new-task-name').value.trim();
         const cat = document.getElementById('new-task-cat').value;
         const suffix = document.getElementById('new-task-suffix').value;
         if (name && cat) {
             state.tasks.push({ name: name, cat: cat, suffix: suffix });
             document.getElementById('new-task-name').value = "";
-            updateSelectBoxes(); showToast("タスク登録完了");
+            updateSelectBoxes();
+            showToast(`タスク「${name}」を登録。`);
+        } else {
+            showToast("名前と枝を選択してください");
         }
     };
 }
 
-// --- UI補助 ---
-function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-function closeAllModals() { document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden')); }
+// --- UI補助機能 ---
+function openModal(id) {
+    document.getElementById(id).classList.remove('hidden');
+    if (id === 'modal-status') updateRadarChart();
+}
+
+function closeAllModals() {
+    document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
+}
 
 function updateSelectBoxes() {
     const taskSel = document.getElementById('task-select');
@@ -233,13 +286,18 @@ function updateSelectBoxes() {
 function updateInventoryUI() {
     const inv = document.getElementById('inventory');
     inv.innerHTML = '';
-    for (const name in state.inventory) {
-        if (state.inventory[name] > 0) {
-            const suffix = name.split('】')[1];
-            const icon = CONFIG.SUFFIXES.find(s => s.name === suffix)?.icon || "💎";
+    for (const fullName in state.inventory) {
+        if (state.inventory[fullName] > 0) {
+            const suffixOnly = fullName.split('】')[1];
+            const icon = CONFIG.SUFFIXES.find(s => s.name === suffixOnly)?.icon || "💎";
+            
             const slot = document.createElement('div');
             slot.className = 'item-slot';
-            slot.innerHTML = `<span class="item-icon">${icon}</span><span class="item-name">${name}</span><span class="item-count">${state.inventory[name]}</span>`;
+            slot.innerHTML = `
+                <span class="item-icon">${icon}</span>
+                <span class="item-name">${fullName}</span>
+                <span class="item-count">${state.inventory[fullName]}</span>
+            `;
             inv.appendChild(slot);
         }
     }
@@ -249,12 +307,16 @@ function updateSubTitlesUI() {
     const cont = document.getElementById('sub-titles');
     cont.innerHTML = state.categories.map(c => {
         if (c.rank === 0) return "";
-        const title = c.rank === 10 ? `真の${c.name}` : `${c.name}${CONFIG.SUB_TITLES[c.rank-1]}`;
-        return `<div style="color:var(--accent-color)">◈ ${title} (累計:${c.points}pt)</div>`;
+        const titleText = (c.rank === 10) ? `真の${c.name}` : `${c.name}${CONFIG.SUB_TITLES[c.rank-1]}`;
+        return `<div style="margin-bottom:5px; color:var(--accent-color); font-weight:bold;">◈ ${titleText} <span style="font-size:10px; color:#777;">(累計:${c.points}pt)</span></div>`;
     }).join('');
+    
+    // プロフィール画面のメイン称号も更新
+    const profileTitle = document.getElementById('profile-title');
+    profileTitle.innerText = document.getElementById('main-title').innerText;
 }
 
-// --- グラフ ---
+// --- レーダーチャート (Chart.js) ---
 function initChart() {
     const ctx = document.getElementById('statusChart').getContext('2d');
     statusChart = new Chart(ctx, {
@@ -265,15 +327,25 @@ function initChart() {
                 data: CONFIG.ATTR_NAMES.map(a => state.stats[a]),
                 backgroundColor: 'rgba(0, 242, 255, 0.2)',
                 borderColor: '#00f2ff',
-                pointBackgroundColor: '#00f2ff'
+                pointBackgroundColor: '#00f2ff',
+                borderWidth: 2
             }]
         },
         options: {
-            scales: { r: { beginAtZero: true, grid: { color: '#333' }, angleLines: { color: '#333' }, ticks: { display: false } } },
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255,255,255,0.1)' },
+                    angleLines: { color: 'rgba(255,255,255,0.1)' },
+                    ticks: { display: false, stepSize: 20 },
+                    pointLabels: { color: '#aaa', font: { size: 12 } }
+                }
+            },
             plugins: { legend: { display: false } }
         }
     });
 }
+
 function updateRadarChart() {
     if (statusChart) {
         statusChart.data.datasets[0].data = CONFIG.ATTR_NAMES.map(a => state.stats[a]);
@@ -282,10 +354,21 @@ function updateRadarChart() {
 }
 
 function showToast(msg) {
-    const c = document.getElementById('toast-container');
-    const t = document.createElement('div');
-    t.style = "background:rgba(0,0,0,0.9); border:1px solid var(--accent-color); padding:12px; margin-top:10px; border-radius:10px; font-size:12px; animation: fadeIn 0.3s;";
-    t.innerText = msg;
-    c.appendChild(t);
-    setTimeout(() => t.remove(), 3000);
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.style.cssText = "background:rgba(0,0,0,0.85); border:1px solid var(--accent-color); color:#fff; padding:12px 20px; margin-bottom:10px; border-radius:12px; font-size:13px; box-shadow:0 0 15px rgba(0,242,255,0.4); animation: toastIn 0.3s ease-out;";
+    toast.innerText = msg;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.animation = "toastOut 0.3s ease-in";
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
+
+// トースト用のアニメーション定義をCSSに追加
+const styleSheet = document.createElement("style");
+styleSheet.innerText = `
+@keyframes toastIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes toastOut { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-20px); opacity: 0; } }
+`;
+document.head.appendChild(styleSheet);
