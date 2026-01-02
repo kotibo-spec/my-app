@@ -1,16 +1,17 @@
-<!-- index.html (中身をこれに差し替えてください) -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Core Alchemist</title>
+    <!-- 外部ライブラリ: レーダーチャート用 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
 </head>
 <body>
     <div id="app">
+        <!-- ヘッダー：メイン称号と総合レベル -->
         <header class="app-header">
             <div class="title-container">
                 <div id="main-title" class="main-title">【未醒の】放浪者</div>
@@ -21,90 +22,104 @@
             </div>
         </header>
 
+        <!-- メイン：コアとスキルツリー描画エリア -->
         <main id="stage">
-            <svg id="tree-svg"></svg>
-            <div id="tree-container"></div>
+            <div id="tree-container">
+                <svg id="tree-svg"></svg>
+            </div>
+            <!-- コア：クリックでステータス画面へ -->
             <div id="core-wrapper">
-                <!-- 玉をクリックでステータスへ -->
                 <div id="core-circle" class="core" onclick="openModal('modal-status')"></div>
             </div>
         </main>
 
+        <!-- フッター：ナビゲーション -->
         <nav class="app-nav">
-            <button id="btn-status" class="nav-btn" onclick="openModal('modal-status')">
-                <span class="icon">👤</span><span class="label">ステータス</span>
+            <button id="btn-report" class="nav-btn primary">
+                <span class="icon">＋</span>
+                <span class="label">報告</span>
             </button>
-            <button id="btn-report" class="nav-btn primary" onclick="openModal('modal-report')">
-                <span class="icon">＋</span><span class="label">報告</span>
+            <button id="btn-tree-manage" class="nav-btn">
+                <span class="icon">🌿</span>
+                <span class="label">枝・タスク</span>
             </button>
-            <button id="btn-settings" class="nav-btn" onclick="openModal('modal-settings')">
-                <span class="icon">⚙️</span><span class="label">設定</span>
+            <button id="btn-settings" class="nav-btn">
+                <span class="icon">⚙️</span>
+                <span class="label">設定</span>
             </button>
         </nav>
 
-        <!-- ステータス画面 -->
+        <!-- モーダル：ステータス & プロフィール -->
         <div id="modal-status" class="modal hidden">
             <div class="modal-content">
                 <button class="close-btn" onclick="closeAllModals()">×</button>
-                <h2 id="profile-main-title">プロフィール</h2>
+                <h2 id="profile-title">【称号】放浪者</h2>
                 <div class="radar-chart-container">
                     <canvas id="statusChart"></canvas>
                 </div>
+                <h3>サブ称号（熟練度）</h3>
                 <div id="sub-titles" class="sub-titles-list"></div>
+                
                 <h3>所持素材</h3>
                 <div id="inventory" class="inventory-grid"></div>
-                <button id="btn-evolve" class="action-btn" onclick="evolveCore()">全素材をコアに投入</button>
+                <button id="btn-evolve" class="action-btn">全素材をコアに捧げる</button>
             </div>
         </div>
 
-        <!-- 報告画面 (ポモドーロ形式修正) -->
+        <!-- モーダル：タスク報告 -->
         <div id="modal-report" class="modal hidden">
             <div class="modal-content">
                 <button class="close-btn" onclick="closeAllModals()">×</button>
-                <h2>タスク完了報告</h2>
+                <h2>タスク報告</h2>
                 <div class="form-group">
-                    <label>タスクを選択</label>
+                    <label>実行タスク</label>
                     <select id="task-select"></select>
                 </div>
                 <div class="form-group">
-                    <label>ポモドーロ記録</label>
-                    <div class="pomo-input-row">
-                        <input type="number" id="pomo-work" value="25"> 分(作業) × 
-                        <input type="number" id="pomo-rest" value="5"> 分(休憩)
-                    </div>
-                    <div class="pomo-input-row" style="margin-top:10px;">
-                        × <input type="number" id="pomo-count" value="1"> ポモドーロ(セット)
+                    <label>ポモドーロ記録 (休憩は除外されます)</label>
+                    <div class="pomo-input-group">
+                        <input type="number" id="pomo-work" placeholder="作業" value="25">
+                        <span>×</span>
+                        <input type="number" id="pomo-break" placeholder="休憩" value="5">
+                        <span>×</span>
+                        <input type="number" id="pomo-count" placeholder="セット" value="1">
                     </div>
                 </div>
-                <button class="action-btn" onclick="submitTask()">完了を証明する</button>
+                <button id="btn-submit-task" class="action-btn">報告を送信</button>
             </div>
         </div>
 
-        <!-- 設定画面 (更新ボタン追加) -->
+        <!-- モーダル：枝・タスク管理 -->
+        <div id="modal-config" class="modal hidden">
+            <div class="modal-content">
+                <button class="close-btn" onclick="closeAllModals()">×</button>
+                <h2>枝・タスク管理</h2>
+                <div class="config-section">
+                    <h3>新しい「枝(カテゴリ)」を生成</h3>
+                    <input type="text" id="new-cat-name" placeholder="例：漫画">
+                    <button id="btn-add-category" class="small-btn">枝を追加</button>
+                </div>
+                <hr>
+                <div class="config-section">
+                    <h3>タスクを登録</h3>
+                    <input type="text" id="new-task-name" placeholder="例：ネーム">
+                    <label>所属する枝</label>
+                    <select id="new-task-cat"></select>
+                    <label>ドロップ素材の種類</label>
+                    <select id="new-task-suffix"></select>
+                    <button id="btn-add-task" class="small-btn">タスクを登録</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- モーダル：設定（更新ボタンなど） -->
         <div id="modal-settings" class="modal hidden">
             <div class="modal-content">
                 <button class="close-btn" onclick="closeAllModals()">×</button>
-                <h2>設定・管理</h2>
-                <button class="action-btn secondary" onclick="location.reload()">アプリを更新(再読み込み)</button>
-                <hr>
-                <div class="config-section">
-                    <h3>枝(カテゴリ)追加</h3>
-                    <input type="text" id="new-cat-name" placeholder="例：漫画">
-                    <button class="action-btn" onclick="addCategory()">枝を生成</button>
-                </div>
-                <div class="config-section">
-                    <h3>タスク追加</h3>
-                    <input type="text" id="new-task-name" placeholder="例：ネーム">
-                    <select id="new-task-cat"></select>
-                    <select id="new-task-suffix"></select>
-                    <button class="action-btn" onclick="addTask()">登録</button>
+                <h2>システム設定</h2>
+                <div class="settings-list">
+                    <button class="action-btn secondary" onclick="location.reload()">アプリを再読み込み(更新)</button>
+                    <p class="hint">動作が重い時や、設定が反映されない時に押してください。</p>
                 </div>
             </div>
         </div>
-
-        <div id="toast-container"></div>
-    </div>
-    <script src="config.js"></script>
-    <script src="script.js"></script>
-</body>
-</html>
