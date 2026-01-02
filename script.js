@@ -283,4 +283,9 @@ function updateRadarChart() {
 
 function showToast(msg) {
     const c = document.getElementById('toast-container');
-    const t
+    const t = document.createElement('div');
+    t.style = "background:rgba(0,0,0,0.9); border:1px solid var(--accent-color); padding:12px; margin-top:10px; border-radius:10px; font-size:12px; animation: fadeIn 0.3s;";
+    t.innerText = msg;
+    c.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+}
