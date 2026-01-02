@@ -13,9 +13,14 @@ let statusChart = null;
 // --- 初期化 ---
 window.onload = () => {
     loadState();
-    initChart();
-    renderAll();
+    // 順番を変更：まずボタンを動かせるようにし、描画でエラーが起きても止まらないようにする
     setupEventListeners();
+    try {
+        initChart();
+        renderAll();
+    } catch (e) {
+        console.log("初期描画エラー（設定後に解消されます）:", e);
+    }
     updateSelectBoxes();
 };
 
@@ -75,64 +80,58 @@ function updateHeader() {
 function renderStage() {
     const svg = document.getElementById('tree-svg');
     const container = document.getElementById('tree-container');
-    
-    // 既存のノードと線をクリア
+    if (!svg || !container) return;
+
     container.innerHTML = '';
     svg.innerHTML = '';
 
+    // 画面中央を取得
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight / 2;
 
+    // カテゴリがない場合は何もせず終了
+    if (!state.categories || state.categories.length === 0) return;
+
     state.categories.forEach((cat, cIdx) => {
-        // カテゴリごとの角度（上から時計回り）
         const angle = (cIdx / state.categories.length) * 2 * Math.PI - Math.PI / 2;
         
         for (let i = 1; i <= 10; i++) {
-            const dist = 85 + (i * 48); // コアからの距離
+            const dist = 75 + (i * 45); 
             const x = centerX + Math.cos(angle) * dist;
             const y = centerY + Math.sin(angle) * dist;
 
-            // 線を描画（前のノードまたはコアから繋ぐ）
-            const prevDist = (i === 1) ? 0 : 85 + ((i - 1) * 48);
+            const prevDist = (i === 1) ? 0 : 75 + ((i - 1) * 45);
             const px = centerX + Math.cos(angle) * prevDist;
             const py = centerY + Math.sin(angle) * prevDist;
 
+            // 線の描画
             const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-            line.setAttribute("x1", px);
-            line.setAttribute("y1", py);
-            line.setAttribute("x2", x);
-            line.setAttribute("y2", y);
+            line.setAttribute("x1", px); line.setAttribute("y1", py);
+            line.setAttribute("x2", x); line.setAttribute("y2", y);
             line.setAttribute("stroke", i <= cat.rank ? "var(--accent-color)" : "#222");
             line.setAttribute("stroke-width", i <= cat.rank ? "2" : "1");
             svg.appendChild(line);
 
-            // ノード（ボタン）を作成
+            // ノードの描画
             const node = document.createElement('div');
             node.className = 'node';
-            
             const cost = CONFIG.TREE_COSTS[i - 1];
-            const isLocked = i > cat.rank + 1;
-            const canUnlock = i === cat.rank + 1 && cat.points >= cost;
+            if (i > cat.rank + 1) node.classList.add('locked');
+            if (i === cat.rank + 1 && cat.points >= cost) node.classList.add('can-unlock');
 
-            if (isLocked) node.classList.add('locked');
-            if (canUnlock) node.classList.add('can-unlock');
-
-            // 座標セット
+            node.style.position = 'absolute';
             node.style.left = `${x}px`;
             node.style.top = `${y}px`;
             node.style.transform = 'translate(-50%, -50%)';
 
-            // 表示内容（10段階目は「真の」）
-            const subTitle = (i === 10) ? `真の${cat.name}` : `${cat.name}${CONFIG.SUB_TITLES[i-1]}`;
-            node.innerHTML = `<strong>${i}</strong><div style="font-size:7px; scale:0.8; white-space:nowrap;">${cat.name}</div>`;
+            node.innerHTML = `<strong>${i}</strong><div style="font-size:7px; scale:0.7;">${cat.name}</div>`;
             
-            // タップイベント
             node.onclick = (e) => {
                 e.stopPropagation();
-                if (canUnlock) {
+                if (i === cat.rank + 1 && cat.points >= cost) {
                     unlockNode(cat.name, i);
                 } else {
-                    showToast(`${cat.name}習得まで あと ${cost - cat.points}pt`);
+                    showToast(`${cat.name}習得まで:${cost - cat.points}pt`);
                 }
             };
             container.appendChild(node);
@@ -146,29 +145,28 @@ function submitTask() {
     const workMin = parseInt(document.getElementById('pomo-work').value) || 0;
     const count = parseInt(document.getElementById('pomo-count').value) || 0;
     
-    if (!taskName) return showToast("タスクを先に登録してください");
+    if (!taskName) {
+        showToast("設定からタスクを登録してください");
+        return;
+    }
 
     const task = state.tasks.find(t => t.name === taskName);
     const totalWork = workMin * count;
 
-    // 1. カテゴリポイント獲得 (ツリー用)
     const cat = state.categories.find(c => c.name === task.cat);
-    if (cat) {
-        cat.points += totalWork;
-    }
+    if (cat) cat.points += totalWork;
 
-    // 2. 素材ドロップ (30分毎に1個 + 確率ボーナス)
+    // 素材ドロップ計算
     let dropCount = Math.floor(totalWork / 30);
-    if (Math.random() < (totalWork % 30) / 30) {
-        dropCount++;
-    }
+    if (Math.random() < (totalWork % 30) / 30) dropCount++;
 
     if (dropCount > 0) {
-        const matFullName = `【${task.cat}】${task.suffix}`;
-        state.inventory[matFullName] = (state.inventory[matFullName] || 0) + dropCount;
-        showToast(`${matFullName}を${dropCount}個抽出！`);
+        // 素材名を【カテゴリ】サフィックス の形に固定
+        const matName = "【" + task.cat + "】" + task.suffix;
+        state.inventory[matName] = (state.inventory[matName] || 0) + dropCount;
+        showToast(matName + "を" + dropCount + "個獲得！");
     } else {
-        showToast("作業を確認。素材抽出には時間が足りません。");
+        showToast("作業を記録しました");
     }
     
     closeAllModals();
