@@ -155,10 +155,14 @@ function renderStage() {
 // --- 管理画面のカテゴリリスト（削除機能） ---
 function renderCategoryList() {
     const list = document.getElementById('category-list');
+    // 枝の名前、現在のランク、貯まっているポイントを全部出す
     list.innerHTML = state.categories.map(cat => `
-        <div class="manage-item">
-            <span>${cat.name} <small>(Rank:${cat.rank})</small></span>
-            <button class="delete-btn" onclick="deleteCategory('${cat.name}')">削除</button>
+        <div class="manage-item" style="border: 1px solid #333; margin-bottom: 10px; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.05);">
+            <div style="display:flex; flex-direction:column;">
+                <span style="font-size:16px;">${cat.name}</span>
+                <span style="font-size:11px; color:#aaa;">ランク: ${cat.rank} / 蓄積: ${cat.points}pt</span>
+            </div>
+            <button class="delete-btn" onclick="deleteCategory('${cat.name}')" style="background:#400; color:#f00; border:1px solid #f00;">削除</button>
         </div>
     `).join('');
 }
