@@ -1,0 +1,120 @@
+/* 全体の設定 */
+body {
+    background-color: #050505; /* 漆黒 */
+    color: #ffffff;
+    font-family: 'Courier New', sans-serif; /* コンソール風フォント */
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.app-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* ヘッダー周り */
+header {
+    text-align: center;
+    margin-top: 20px;
+    z-index: 10;
+}
+.rank-text {
+    font-size: 12px;
+    color: #666;
+    letter-spacing: 2px;
+}
+.title-text {
+    font-size: 24px;
+    font-weight: bold;
+    color: #00ffff; /* シアン */
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    margin: 5px 0;
+}
+.level-indicator {
+    font-size: 14px;
+    color: #aaa;
+}
+
+/* 中央のコア・システム */
+.orbit-system {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* コア（あなたの本体） */
+.core-object {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff, #00ffff);
+    box-shadow: 0 0 20px #00ffff;
+    transition: all 0.5s ease;
+    z-index: 5;
+}
+
+/* スキルノード（周囲の点） */
+.skill-node {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: #333;
+    border-radius: 50%;
+    transition: all 1s ease;
+}
+.skill-node.active {
+    background-color: #ff00ff; /* マゼンタ */
+    box-shadow: 0 0 10px #ff00ff;
+}
+
+/* 下部コントロール */
+.controls {
+    width: 100%;
+    max-width: 400px;
+    z-index: 10;
+}
+
+.log-box {
+    background: rgba(0, 20, 20, 0.8);
+    border: 1px solid #005555;
+    height: 80px;
+    padding: 10px;
+    font-size: 11px;
+    color: #00ffaa;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+.log-box p { margin: 2px 0; }
+
+.action-area { text-align: center; }
+.guide-text { font-size: 10px; color: #888; margin-bottom: 10px; }
+
+/* ボタン */
+.upload-btn {
+    display: inline-block;
+    background: linear-gradient(45deg, #00cccc, #008888);
+    color: #fff;
+    padding: 15px 40px;
+    border-radius: 30px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+    transition: transform 0.1s;
+}
+.upload-btn:active {
+    transform: scale(0.95);
+}
