@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Core Alchemist</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+    <!-- アプリ全体 -->
+    <div class="app-container">
+        
+        <!-- ヘッダー：ランクと名前 -->
+        <header>
+            <div id="rank-name" class="rank-text">UNRANKED</div>
+            <div id="title-name" class="title-text">見習い観測者</div>
+            <div class="level-indicator">Lv.<span id="level-val">1</span></div>
+        </header>
+
+        <!-- メインエリア：コアとスキルツリー -->
+        <main>
+            <div class="orbit-system">
+                <!-- 中央のコア -->
+                <div id="core" class="core-object"></div>
+                <!-- スキルノード（JSで自動生成） -->
+                <div id="skills-container"></div>
+            </div>
+        </main>
+
+        <!-- コントロールエリア -->
+        <div class="controls">
+            <!-- ログ表示窓 -->
+            <div id="log-window" class="log-box">
+                <p>システム起動... 待機中。</p>
+            </div>
+
+            <!-- アクションボタン -->
+            <div class="action-area">
+                <p class="guide-text">ポモドーロ完了の証拠を提出せよ</p>
+                <!-- 実際はファイル選択だが、カメラ風に見せる -->
+                <label for="file-upload" class="upload-btn">
+                    REPORT TASK (UPLOAD)
+                </label>
+                <input type="file" id="file-upload" accept="image/*" style="display:none;">
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
