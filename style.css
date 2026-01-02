@@ -306,4 +306,54 @@ input, select {
     right: -5px;
     background: var(--p-color);
     color: #fff;
-    font-siz
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+/* --- ボタン類 --- */
+.action-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--accent-color);
+    border: none;
+    border-radius: 16px;
+    color: #000;
+    font-weight: 900;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.action-btn.secondary {
+    background: #333;
+    color: #fff;
+    margin-top: 10px;
+}
+
+.small-btn {
+    padding: 10px 20px;
+    background: #444;
+    border: none;
+    color: #fff;
+    border-radius: 10px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+/* --- ログ・その他 --- */
+#toast-container {
+    position: fixed;
+    top: 100px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+    z-index: 3000;
+}
+
+.radar-chart-container {
+    width: 100%;
+    margin: 10px 0 20px;
+}
