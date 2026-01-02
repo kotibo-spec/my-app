@@ -1,120 +1,266 @@
-/* 全体の設定 */
+/* --- 基本設定 --- */
+:root {
+    --bg-color: #050508;
+    --card-bg: rgba(20, 20, 30, 0.85);
+    --accent-color: #00f2ff; /* シアン */
+    --p-color: #ff0077; /* マゼンタ */
+    --text-color: #e0e0e0;
+    --border-glow: 0 0 10px rgba(0, 242, 255, 0.5);
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
+}
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
 body {
-    background-color: #050505; /* 漆黒 */
-    color: #ffffff;
-    font-family: 'Courier New', sans-serif; /* コンソール風フォント */
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Helvetica Neue', Arial, sans-serif;
     margin: 0;
+    padding: 0;
     height: 100vh;
+    overflow: hidden; /* スクロールは各パーツ内で制御 */
+}
+
+/* --- ヘッダー（称号・XP） --- */
+.app-header {
+    padding: calc(var(--safe-top) + 15px) 20px 10px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 100;
+}
+
+.main-title {
+    font-size: 20px;
+    font-weight: 900;
+    text-align: center;
+    letter-spacing: 2px;
+    color: var(--accent-color);
+    text-shadow: 0 0 15px var(--accent-color);
+    margin-bottom: 5px;
+}
+
+.level-badge {
+    text-align: center;
+    font-size: 14px;
+    color: #fff;
+    opacity: 0.8;
+}
+
+.xp-bar-container {
+    width: 80%;
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    margin: 8px auto 0;
+    border-radius: 2px;
     overflow: hidden;
+}
+
+.xp-bar-fill {
+    width: 30%; /* JSで変動 */
+    height: 100%;
+    background: var(--accent-color);
+    box-shadow: 0 0 10px var(--accent-color);
+    transition: width 0.5s ease;
+}
+
+/* --- メインステージ --- */
+#stage {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
+    overflow: hidden;
 }
 
-.app-container {
+#tree-svg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none; /* 下の要素を触れるように */
+}
+
+.core {
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, #fff 0%, var(--accent-color) 40%, transparent 100%);
+    border-radius: 50%;
+    box-shadow: 0 0 40px var(--accent-color);
+    position: relative;
+    z-index: 10;
+    animation: pulse 4s infinite ease-in-out;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 60px var(--accent-color); }
+}
+
+/* スキルツリーのノード（枝の先） */
+.node {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: var(--card-bg);
+    border: 1px solid var(--accent-color);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 10px;
+    color: var(--accent-color);
+    box-shadow: var(--border-glow);
+    z-index: 5;
+    transition: all 0.3s;
+}
+
+.node.locked {
+    opacity: 0.4;
+    border-color: #555;
+    color: #555;
+    box-shadow: none;
+}
+
+/* --- ナビゲーション --- */
+.app-nav {
+    position: fixed;
+    bottom: 0;
     width: 100%;
-    height: 100%;
+    padding-bottom: var(--safe-bottom);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    height: calc(70px + var(--safe-bottom));
+    z-index: 100;
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    color: #888;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
     align-items: center;
-    padding: 20px;
-    box-sizing: border-box;
+    font-size: 10px;
+    gap: 5px;
 }
 
-/* ヘッダー周り */
-header {
-    text-align: center;
-    margin-top: 20px;
-    z-index: 10;
-}
-.rank-text {
-    font-size: 12px;
-    color: #666;
-    letter-spacing: 2px;
-}
-.title-text {
-    font-size: 24px;
-    font-weight: bold;
-    color: #00ffff; /* シアン */
-    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-    margin: 5px 0;
-}
-.level-indicator {
-    font-size: 14px;
-    color: #aaa;
+.nav-btn.primary {
+    color: var(--accent-color);
+    transform: translateY(-10px);
 }
 
-/* 中央のコア・システム */
-.orbit-system {
-    position: relative;
-    width: 300px;
-    height: 300px;
+.nav-btn.primary .icon {
+    font-size: 30px;
+    background: var(--accent-color);
+    color: var(--bg-color);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
+    box-shadow: 0 0 20px var(--accent-color);
 }
 
-/* コア（あなたの本体） */
-.core-object {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: radial-gradient(circle, #fff, #00ffff);
-    box-shadow: 0 0 20px #00ffff;
-    transition: all 0.5s ease;
-    z-index: 5;
+/* --- モーダル (プロフィール等) --- */
+.modal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end; /* 下からせり出す */
+    transition: opacity 0.3s;
 }
 
-/* スキルノード（周囲の点） */
-.skill-node {
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    background-color: #333;
-    border-radius: 50%;
-    transition: all 1s ease;
-}
-.skill-node.active {
-    background-color: #ff00ff; /* マゼンタ */
-    box-shadow: 0 0 10px #ff00ff;
+.modal.hidden {
+    display: none;
 }
 
-/* 下部コントロール */
-.controls {
+.modal-content {
     width: 100%;
-    max-width: 400px;
-    z-index: 10;
-}
-
-.log-box {
-    background: rgba(0, 20, 20, 0.8);
-    border: 1px solid #005555;
-    height: 80px;
-    padding: 10px;
-    font-size: 11px;
-    color: #00ffaa;
+    max-height: 85vh;
+    background: var(--card-bg);
+    border-radius: 30px 30px 0 0;
+    padding: 30px 20px calc(20px + var(--safe-bottom));
     overflow-y: auto;
-    margin-bottom: 20px;
-    border-radius: 4px;
+    border-top: 1px solid var(--accent-color);
 }
-.log-box p { margin: 2px 0; }
 
-.action-area { text-align: center; }
-.guide-text { font-size: 10px; color: #888; margin-bottom: 10px; }
+.close-btn {
+    position: absolute;
+    top: 15px; right: 20px;
+    background: none; border: none;
+    color: #fff; font-size: 24px;
+}
 
-/* ボタン */
-.upload-btn {
-    display: inline-block;
-    background: linear-gradient(45deg, #00cccc, #008888);
+/* --- フォームとボタン --- */
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; margin-bottom: 8px; font-size: 12px; color: #aaa; }
+
+input, select {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid #333;
     color: #fff;
-    padding: 15px 40px;
-    border-radius: 30px;
+    padding: 12px;
+    border-radius: 10px;
+}
+
+.pomo-input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.action-btn {
+    width: 100%;
+    padding: 15px;
+    background: var(--accent-color);
+    border: none;
+    border-radius: 15px;
+    color: #000;
     font-weight: bold;
-    letter-spacing: 1px;
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
-    transition: transform 0.1s;
+    font-size: 16px;
+    margin-top: 10px;
 }
-.upload-btn:active {
-    transform: scale(0.95);
+
+/* --- ステータス/インベントリ表示 --- */
+.radar-chart-container {
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto 20px;
 }
+
+.inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.item-slot {
+    aspect-ratio: 1;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid #333;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 10px;
+    position: rela
