@@ -1,0 +1,37 @@
+/* --- RARITY-FX.CSS --- */
+
+/* [R] Rare */
+.rarity-r { border-color: #00f2ff !important; box-shadow: 0 0 10px rgba(0, 242, 255, 0.5); }
+.rarity-r .item-icon { animation: r-shine 3s infinite ease-in-out; }
+
+/* [SR] S-Rare */
+.rarity-sr {
+    border: 2px solid #ffcc00 !important;
+    box-shadow: 0 0 15px rgba(255, 204, 0, 0.6);
+    background: linear-gradient(135deg, rgba(255, 204, 0, 0.1), rgba(0,0,0,0.5));
+}
+.rarity-sr .item-icon { animation: sr-float 2.5s infinite ease-in-out; }
+
+/* [SSR] SSR (Rainbow) */
+.rarity-ssr {
+    border: none !important;
+    background: linear-gradient(45deg, #ff0000, #ff7700, #ffee00, #00ff00, #0000ff, #aa00ff, #ff0000);
+    background-size: 400% 400%;
+    animation: rainbow-bg 5s linear infinite;
+}
+.rarity-ssr .item-icon { animation: ssr-rotate 4s linear infinite; }
+
+/* [UR] Ultimate (Glitch & Aura) */
+.rarity-ur {
+    border: 2px solid #fff !important; background: #000 !important;
+    box-shadow: 0 0 30px #fff, 0 0 50px #ff00ff;
+    animation: ur-shake 0.1s infinite, rainbow-border 2s linear infinite;
+}
+
+/* アニメーション */
+@keyframes r-shine { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.8) drop-shadow(0 0 5px #fff); } }
+@keyframes sr-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px) scale(1.1); filter: brightness(1.5); } }
+@keyframes rainbow-bg { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+@keyframes ssr-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes ur-shake { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -1px); } 100% { transform: translate(1px, -1px); } }
+@keyframes rainbow-border { 0% { border-color: #f00; } 33% { border-color: #0f0; } 66% { border-color: #00f; } 100% { border-color: #f00; } }

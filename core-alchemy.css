@@ -1,0 +1,56 @@
+/* --- CORE-ALCHEMY.CSS --- */
+#core-wrapper {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%); z-index: 100;
+}
+
+.core {
+    width: 90px; height: 90px;
+    background: radial-gradient(circle, #fff 0%, var(--accent-color) 40%, transparent 70%);
+    border-radius: 50%;
+    box-shadow: 0 0 30px var(--accent-color);
+    cursor: pointer; z-index: 110;
+    animation: coreBreath 4s infinite ease-in-out;
+    pointer-events: auto;
+}
+
+.core-ring {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%; pointer-events: none;
+    border: 1px solid rgba(var(--accent-rgb), 0.2);
+    box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.3);
+    transition: all 1s ease;
+}
+
+.core-aura {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120px; height: 120px; border-radius: 50%;
+    background: var(--accent-color);
+    filter: blur(40px); opacity: 0.4;
+    animation: auraPulse 4s infinite ease-in-out;
+    pointer-events: none; z-index: 2;
+}
+
+.stage-flair {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px; height: 600px;
+    border: 2px double rgba(var(--accent-rgb), 0.1);
+    border-radius: 50%; pointer-events: none;
+    opacity: 0; transition: opacity 2s ease; z-index: 1;
+}
+.flair-active { opacity: 1; animation: rotate 30s linear infinite; }
+
+/* アニメーション定義 */
+@keyframes rotate { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+@keyframes rotate-rev { from { transform: translate(-50%, -50%) rotate(360deg); } to { transform: translate(-50%, -50%) rotate(0deg); } }
+@keyframes auraPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+    50% { transform: translate(-50%, -50%) scale(1.8); opacity: 0.6; }
+}
+@keyframes coreBreath {
+    0%, 100% { transform: scale(1); filter: brightness(1) drop-shadow(0 0 20px var(--accent-color)); }
+    50% { transform: scale(1.05); filter: brightness(1.4) drop-shadow(0 0 50px var(--accent-color)); }
+}

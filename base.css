@@ -1,0 +1,31 @@
+/* --- BASE.CSS --- */
+:root {
+    --bg-color: #020205;
+    --card-bg: rgba(10, 10, 20, 0.95);
+    --accent-rgb: 0, 242, 255; 
+    --accent-color: rgb(var(--accent-rgb));
+    --p-color: #ff0077;
+    --gold-color: #ffcc00;
+    --star-glow: 0 0 15px rgba(var(--accent-rgb), 0.8);
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
+    --text-color: #ffffff;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+    background-color: var(--bg-color);
+    background-image: 
+        radial-gradient(circle at 50% 50%, rgba(var(--accent-rgb), 0.05) 0%, transparent 80%),
+        radial-gradient(1px 1px at 20px 30px, #fff, rgba(0,0,0,0)),
+        radial-gradient(1.5px 1.5px at 100px 150px, #fff, rgba(0,0,0,0)),
+        radial-gradient(1px 1px at 200px 400px, #fff, rgba(0,0,0,0));
+    background-size: 500px 500px;
+    color: var(--text-color);
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    margin: 0;
+    height: 100vh; width: 100vw;
+    overflow: hidden;
+    position: fixed;
+}

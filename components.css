@@ -1,0 +1,53 @@
+/* --- COMPONENTS.CSS --- */
+.main-title {
+    font-size: 18px; font-weight: 900; text-align: center;
+    color: var(--accent-color); text-shadow: var(--star-glow);
+    letter-spacing: 2px;
+}
+
+.level-badge { text-align: center; font-size: 12px; color: var(--gold-color); margin-top: 2px; }
+
+.xp-bar-container {
+    width: 60%; height: 2px; background: rgba(255,255,255,0.1);
+    margin: 6px auto 0; border-radius: 1px; overflow: hidden;
+}
+.xp-bar-fill { width: 0%; height: 100%; background: var(--accent-color); box-shadow: var(--star-glow); transition: width 0.4s; }
+
+.nav-btn {
+    background: none; border: none; color: #666;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 2px; font-size: 9px; width: 20%; cursor: pointer;
+}
+.nav-btn.primary { color: var(--accent-color); }
+.nav-btn.primary .icon {
+    font-size: 24px; background: var(--accent-color); color: #000;
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; justify-content: center; align-items: center; box-shadow: var(--star-glow);
+}
+
+.action-btn {
+    width: 100%; padding: 16px; background: var(--accent-color);
+    border: none; border-radius: 15px; color: #000; font-weight: 900; font-size: 16px;
+}
+.action-btn.secondary { background: #222; color: #fff; margin-top: 10px; }
+
+input, select {
+    width: 100%; background: rgba(255,255,255,0.05); border: 1px solid #333;
+    color: #fff; padding: 12px; border-radius: 10px; font-size: 16px; margin-bottom: 10px;
+}
+
+.inventory-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 20px 0; }
+.item-slot {
+    background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(var(--accent-rgb), 0.3);
+    border-radius: 12px; padding: 12px; display: flex; flex-direction: column; align-items: center;
+}
+
+.attribute-item { margin-bottom: 15px; }
+.attr-gauge-bg { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+.attr-gauge-fill { height: 100%; background: var(--accent-color); box-shadow: 0 0 5px var(--accent-color); }
+
+.log-item {
+    background: rgba(255,255,255,0.03); border: 1px solid #222; padding: 12px; border-radius: 10px;
+    font-size: 12px; line-height: 1.4; margin-bottom: 8px;
+}
+#toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 3000; width: 80%; }
