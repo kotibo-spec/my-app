@@ -361,3 +361,86 @@ input, select {
     /* 線の太さを少しランダムに見せるための光彩 */
     box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.3);
 }
+
+/* --- 素材レアリティ別の演出設定 --- */
+
+/* [R] レア: 青く光る */
+.rarity-r {
+    border-color: #00f2ff !important;
+    box-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+}
+
+/* [SR] スーパーレア: ピンクに強く光る */
+.rarity-sr {
+    border-color: #ff0077 !important;
+    box-shadow: 0 0 15px rgba(255, 0, 119, 0.7);
+    animation: sr-pulse 2s infinite;
+}
+@keyframes sr-pulse {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.3); }
+}
+
+/* [SSR] ダブルスーパーレア: 虹色回転・明滅 */
+.rarity-ssr {
+    border: none !important;
+    background: linear-gradient(45deg, #ff0000, #ff7700, #ffee00, #00ff00, #0000ff, #aa00ff, #ff0000);
+    background-size: 400% 400%;
+    animation: rainbow-bg 5s linear infinite;
+    position: relative;
+}
+.rarity-ssr .item-icon {
+    animation: ssr-rotate 4s linear infinite;
+}
+@keyframes rainbow-bg {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+@keyframes ssr-rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* [UR] アルティメットレア: 激しい震動・虹オーラ */
+.rarity-ur {
+    border: 2px solid #fff !important;
+    background: #000;
+    box-shadow: 0 0 30px #fff, 0 0 50px #ff00ff;
+    animation: ur-shake 0.1s infinite, rainbow-border 2s linear infinite;
+}
+.rarity-ur::before {
+    content: '';
+    position: absolute;
+    top: -10px; left: -10px; right: -10px; bottom: -10px;
+    background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%);
+    z-index: -1;
+    animation: ur-aura 1s infinite alternate;
+}
+@keyframes ur-shake {
+    0% { transform: translate(1px, 1px); }
+    50% { transform: translate(-1px, -1px); }
+    100% { transform: translate(1px, -1px); }
+}
+@keyframes ur-aura {
+    from { opacity: 0.3; transform: scale(0.9); }
+    to { opacity: 0.8; transform: scale(1.2); }
+}
+@keyframes rainbow-border {
+    0% { border-color: #ff0000; }
+    20% { border-color: #ffee00; }
+    40% { border-color: #00ff00; }
+    60% { border-color: #00f2ff; }
+    80% { border-color: #aa00ff; }
+    100% { border-color: #ff0000; }
+}
+
+/* 図鑑（アーカイブ）内のUR特別枠 */
+.archive-ur {
+    background: linear-gradient(135deg, #222, #000) !important;
+    border: 2px solid gold !important;
+}
+
+/* 獲得時通知（トースト）の強化 */
+.toast-ssr { border: 2px solid gold !important; font-weight: bold; background: rgba(50,50,0,0.9) !important; }
+.toast-ur { border: 3px solid #fff !important; font-size: 16px !important; text-shadow: 0 0 10px #fff; background: #000 !important; animation: ur-shake 0.1s infinite; }
