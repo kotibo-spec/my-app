@@ -8,7 +8,7 @@ const CONFIG = {
         R:   { label: "Rare",     chance: 0.15,    mult: 2.0,   color: "#00f2ff" },
         SR:  { label: "S-Rare",   chance: 0.04,    mult: 5.0,   color: "#ff0077" },
         SSR: { label: "D-SSR",    chance: 0.0099,  mult: 10.0,  color: "#ffff00" },
-        UR:  { label: "Ultimate", chance: 0.0001,  mult: 100.0, color: "#ff00ff" }
+        UR:  { label: "Ultimate", chance: 0.001,  mult: 100.0, color: "#ff00ff" }
     },
 
     // 素材本体（名詞）: レアリティによって選ばれる
