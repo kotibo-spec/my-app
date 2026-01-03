@@ -160,9 +160,11 @@ function renderStage() {
             const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
             line.setAttribute("x1", px); line.setAttribute("y1", py);
             line.setAttribute("x2", x); line.setAttribute("y2", y);
-            line.setAttribute("stroke", i <= cat.rank ? "rgba(0, 242, 255, 0.6)" : "rgba(255,255,255,0.05)");
+            // 0, 242, 255 を var(--accent-rgb) に書き換えました
+            line.setAttribute("stroke", i <= cat.rank ? "rgba(var(--accent-rgb), 0.6)" : "rgba(255,255,255,0.05)");
             line.setAttribute("stroke-width", i <= cat.rank ? "1.5" : "0.5");
-            if (i <= cat.rank) line.setAttribute("style", "filter: drop-shadow(0 0 3px #00f2ff)");
+            // 光彩も var(--accent-color) を使うように変更
+            if (i <= cat.rank) line.setAttribute("style", "filter: drop-shadow(0 0 3px var(--accent-color))");
             svg.appendChild(line);
 
             // 星（ノード）
