@@ -43,16 +43,21 @@ function loadState() {
 }
 
 // 素材ガチャ（鑑定）ロジック
+// --- ガチャロジックの改善 (config.jsに完全準拠) ---
 function generateMaterial(attr) {
     const rand = Math.random();
     let rarity = "N";
     
-    // config.js の確率（chance）を読み込むように修正（これでコンフィグ変更が反映されます）
-    if (rand < CONFIG.RARITIES.UR.chance) rarity = "UR";
-    else if (rand < CONFIG.RARITIES.SSR.chance + CONFIG.RARITIES.UR.chance) rarity = "SSR";
-    else if (rand < CONFIG.RARITIES.SR.chance + 0.01) rarity = "SR"; // 境界調整
-    else if (rand < 0.20) rarity = "R";
-    else rarity = "N";
+    // 累積確率で判定
+    let cumulative = 0;
+    const rarityOrder = ["UR", "SSR", "SR", "R", "N"];
+    for (const r of rarityOrder) {
+        cumulative += CONFIG.RARITIES[r].chance;
+        if (rand < cumulative) {
+            rarity = r;
+            break;
+        }
+    }
 
     const config = CONFIG.RARITIES[rarity];
     let fullName = "";
@@ -61,23 +66,45 @@ function generateMaterial(attr) {
     if (rarity === "UR") {
         const urList = [...CONFIG.UR_MATERIALS[attr], ...CONFIG.UR_MATERIALS["共通"]];
         fullName = urList[Math.floor(Math.random() * urList.length)];
-        icon = "👑"; // URは固定
+        icon = "👑";
     } else {
         const nouns = CONFIG.MATERIAL_NOUNS[rarity];
         const noun = nouns[Math.floor(Math.random() * nouns.length)];
-        
         const prefixGroup = CONFIG.MATERIAL_PREFIXES[attr];
         let prefixList = (rarity === "SSR") ? prefixGroup.SSR : 
                          (rarity === "N") ? prefixGroup.N : prefixGroup.RSR;
         
-        // 接頭辞データ（テキストとアイコンのセット）を取得
         const prefixData = prefixList[Math.floor(Math.random() * prefixList.length)];
-        
         fullName = `${prefixData.text}${noun}`;
-        icon = prefixData.icon; // ★言葉に紐づいた絵文字をセット！
+        icon = prefixData.icon;
     }
-
     return { name: fullName, rarity: rarity, attr: attr, mult: config.mult, icon: icon };
+}
+
+// --- レーダーチャートの更新 (色をテーマに合わせる) ---
+function updateRadarChart() {
+    if (!statusChart) return;
+
+    // 現在のアクセントカラーを取得
+    const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent-color').trim();
+
+    statusChart.data.datasets[0].data = CONFIG.ATTR_NAMES.map(a => state.stats[a]);
+    // チャートの色も現在の属性色に変更
+    statusChart.data.datasets[0].borderColor = accentColor;
+    statusChart.data.datasets[0].backgroundColor = accentColor.replace('rgb', 'rgba').replace(')', ', 0.2)');
+    statusChart.data.datasets[0].pointBackgroundColor = accentColor;
+    
+    statusChart.update();
+}
+
+// --- 初期化時の安全策 (loadStateの強化) ---
+function loadState() {
+    const saved = localStorage.getItem('coreAlchemistData');
+    if (saved) {
+        const parsed = JSON.parse(saved);
+        state = Object.assign(state, parsed);
+        // inventoryが古い形式（数値）だった場合の修復ロジックを入れるとさらに安全です
+    }
 }
 
 // --- 全描画 ---
