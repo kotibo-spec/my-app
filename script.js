@@ -367,7 +367,14 @@ function submitTask() {
 
         // 図鑑への記録
         if (!state.archive[mat.name]) {
-            state.archive[mat.name] = { count: 0, firstDate: new Date().toLocaleDateString('ja-JP') };
+            // 初めて手に入れた時に、その素材の「基本情報」をすべて図鑑に焼き付ける
+            state.archive[mat.name] = { 
+                count: 0, 
+                firstDate: new Date().toLocaleDateString('ja-JP'),
+                rarity: mat.rarity, 
+                attr: mat.attr,     
+                icon: mat.icon      
+            };
             dropMsg += `\n【NEW!】${mat.name} (${mat.rarity})`;
         } else {
             dropMsg += `\n${mat.name} (${mat.rarity})`;
@@ -628,8 +635,8 @@ function renderArchive(sortBy = 'rarity') {
 
     // 並び替えロジック
     itemNames.sort((a, b) => {
-        const itemA = state.inventory[a] || { rarity: "N", attr: "火" };
-        const itemB = state.inventory[b] || { rarity: "N", attr: "火" };
+        const itemA = state.archive[a];
+        const itemB = state.archive[b];
 
         if (sortBy === 'rarity') {
             const order = { UR: 0, SSR: 1, SR: 2, R: 3, N: 4 };
@@ -642,14 +649,15 @@ function renderArchive(sortBy = 'rarity') {
 
     itemNames.forEach(name => {
         const arch = state.archive[name];
-        // ★ここを修正：インベントリに保存されているアイコン（item.icon）を使うようにしました
-        const invInfo = state.inventory[name] || { rarity: "N", attr: "火", icon: "💎" };
-        const icon = invInfo.icon || "💎";
+        const rarity = arch.rarity || "N";
+        const icon = arch.icon || "💎";
 
         const slot = document.createElement('div');
-        slot.className = `item-slot rarity-${invInfo.rarity.toLowerCase()}`;
+        // レアリティ演出用のクラス
+        slot.className = `item-slot rarity-${rarity.toLowerCase()}`;
+        
         slot.innerHTML = `
-            <div class="item-name" style="color:#fff; font-size:9px;">${invInfo.rarity}</div>
+            <div class="item-name" style="color:#fff; font-size:9px;">${rarity}</div>
             <div class="item-icon">${icon}</div>
             <div class="item-name">${name}</div>
             <div class="archive-info">獲得数: ${arch.count}回</div>
