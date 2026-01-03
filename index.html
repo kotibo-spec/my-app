@@ -33,10 +33,15 @@
     <div id="tree-container">
         <svg id="tree-svg"></svg>
         <!-- 玉（コア）をここ（枝と同じ箱）に移動しました -->
-        <div id="core-wrapper">
-            <div id="core-circle" class="core"></div>
-            <div id="core-ring" class="core-ring"></div>
-        </div>
+<div id="core-wrapper">
+    <!-- 5レベルごとの巨大演出用 -->
+    <div id="stage-flair" class="stage-flair"></div>
+    
+    <!-- ここにレベル分のリングが自動生成されます -->
+    <div id="ring-container"></div>
+    
+    <div id="core-circle" class="core"></div>
+</div>
     </div>
 </main>
 
