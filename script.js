@@ -90,24 +90,29 @@ function updateCoreEvolution() {
 
     // 1. リングの生成（レベルの数だけ出す）
     container.innerHTML = ''; // 一旦クリア
+    // --- 修正箇所：updateCoreEvolution関数の中のforループ部分 ---
     for (let i = 1; i <= state.level; i++) {
         const ring = document.createElement('div');
         ring.className = 'core-ring';
         
-        // 外側にいくほど大きくする
         const size = 110 + (i * 15); 
         ring.style.width = size + 'px';
         ring.style.height = size + 'px';
         
-        // 奇数と偶数で回転方向を変える
-        const anim = (i % 2 === 0) ? 'rotate' : 'rotate-rev';
-        const speed = 5 + (i * 2); // 外側ほどゆっくり回る
-        ring.style.animation = `${anim} ${speed}s linear infinite`;
+        // --- ここを修正 ---
+        // 内側（iが小さい）ほど速く、外側ほどゆっくり回るように計算
+        const speed = 3 + (i * 1.5); 
+        const direction = (i % 2 === 0) ? 'rotate' : 'rotate-rev';
+        ring.style.animation = `${direction} ${speed}s linear infinite`;
         
-        // 5つごとに線を少し太く、明るくする
+        // 5の倍数のリングは点線（dashed）にしてアクセントをつける
         if (i % 5 === 0) {
+            ring.style.borderStyle = 'dashed';
             ring.style.borderWidth = '2px';
-            ring.style.borderColor = `rgba(var(--accent-rgb), 0.5)`;
+            ring.style.opacity = '0.6';
+        } else {
+            // それ以外は透明度をランダムにして「ゆらぎ」を出す
+            ring.style.opacity = 0.1 + (Math.random() * 0.3);
         }
         
         container.appendChild(ring);
