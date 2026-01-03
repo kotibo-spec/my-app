@@ -41,20 +41,24 @@
 </main>
 
         <!-- フッター：ナビゲーション -->
-        <nav class="app-nav">
-            <button id="btn-report" class="nav-btn primary">
-                <span class="icon">＋</span>
-                <span class="label">報告</span>
-            </button>
-            <button id="btn-tree-manage" class="nav-btn">
-                <span class="icon">🌿</span>
-                <span class="label">枝・タスク</span>
-            </button>
-            <button id="btn-settings" class="nav-btn">
-                <span class="icon">⚙️</span>
-                <span class="label">設定</span>
-            </button>
-        </nav>
+<nav class="app-nav">
+    <button id="btn-report" class="nav-btn primary">
+        <span class="icon">＋</span>
+        <span class="label">報告</span>
+    </button>
+    <button id="btn-logs" class="nav-btn">
+        <span class="icon">📜</span>
+        <span class="label">記録</span>
+    </button>
+    <button id="btn-tree-manage" class="nav-btn">
+        <span class="icon">🌿</span>
+        <span class="label">枝・タスク</span>
+    </button>
+    <button id="btn-settings" class="nav-btn">
+        <span class="icon">⚙️</span>
+        <span class="label">設定</span>
+    </button>
+</nav>
 
         <!-- モーダル：ステータス & プロフィール -->
         <div id="modal-status" class="modal hidden">
@@ -75,26 +79,47 @@
 
         <!-- モーダル：タスク報告 -->
         <div id="modal-report" class="modal hidden">
-            <div class="modal-content">
-                <button class="close-btn" onclick="closeAllModals()">×</button>
-                <h2>タスク報告</h2>
-                <div class="form-group">
-                    <label>実行タスク</label>
-                    <select id="task-select"></select>
-                </div>
-                <div class="form-group">
-                    <label>ポモドーロ記録</label>
-                    <div class="pomo-input-group">
-                        <input type="number" id="pomo-work" value="25">
-                        <span>分 ×</span>
-                        <input type="number" id="pomo-break" value="5">
-                        <span>分 ×</span>
-                        <input type="number" id="pomo-count" value="1">
-                        <span>回</span>
-                    </div>
-                </div>
-                <button id="btn-submit-task" class="action-btn">報告を送信</button>
-            </div>
+<div class="modal-content">
+    <button class="close-btn" onclick="closeAllModals()">×</button>
+    <h2>報告を選択</h2>
+    <div class="form-group">
+        <label>タスク</label>
+        <select id="task-select"></select>
+    </div>
+    <div class="form-group">
+        <label>報告タイプ</label>
+        <select id="report-type" onchange="toggleReportType()">
+            <option value="pomo">ポモドーロ（時間入力）</option>
+            <option value="manual">通常タスク（難易度入力）</option>
+        </select>
+    </div>
+    
+    <!-- ポモドーロ用入力 -->
+    <div id="input-pomo" class="form-group">
+        <label>ポモドーロ記録</label>
+        <div class="pomo-input-group">
+            <input type="number" id="pomo-work" value="25">
+            <span>分 ×</span>
+            <input type="number" id="pomo-break" value="5">
+            <span>分 ×</span>
+            <input type="number" id="pomo-count" value="1">
+            <span>セット</span>
+        </div>
+    </div>
+
+    <!-- 通常タスク用入力 -->
+    <div id="input-manual" class="form-group hidden">
+        <label>難易度を選択</label>
+        <select id="difficulty-select">
+            <option value="easy">【簡単】(30pt獲得)</option>
+            <option value="normal">【普通】(100pt獲得)</option>
+            <option value="hard">【難しい】(300pt獲得)</option>
+        </select>
+    </div>
+
+    <button id="btn-submit-task" class="action-btn">完了を証明する</button>
+</div>
+
         </div>
 
         <!-- モーダル：枝・タスク管理 -->
@@ -150,5 +175,17 @@
 
     <script src="config.js"></script>
     <script src="script.js"></script>
+    
+    <!-- モーダル：全履歴ログ -->
+<div id="modal-logs" class="modal hidden">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeAllModals()">×</button>
+        <h2>冒険の記録（全履歴）</h2>
+        <div id="history-list" class="history-list">
+            <!-- ここに全ログが並びます -->
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
