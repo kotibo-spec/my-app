@@ -105,23 +105,41 @@ body {
 }
 
 /* 枝が増えるとJSで出現するリング */
+/* 進化するリングの基本形 */
 .core-ring {
     position: absolute;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     border-radius: 50%;
     pointer-events: none;
-    display: none;
-    border: 1px solid rgba(var(--accent-rgb), 0.3);
+    border: 1px solid rgba(var(--accent-rgb), 0.2);
+    box-shadow: 0 0 5px rgba(var(--accent-rgb), 0.1);
+    transition: all 1s ease;
 }
 
-/* リング1（内側） */
-.ring-1 { width: 130px; height: 130px; display: block; animation: rotate 10s linear infinite; border-style: dashed; }
-/* リング2（外側） */
-.ring-2 { width: 160px; height: 160px; animation: rotate-rev 15s linear infinite; border-width: 2px; }
+/* 5レベルごとの特殊演出：背景の巨大魔導陣 */
+.stage-flair {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px; height: 600px;
+    border: 2px double rgba(var(--accent-rgb), 0.1);
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 2s ease;
+}
+.flair-active { opacity: 1; animation: rotate 30s linear infinite; }
 
-@keyframes rotate { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
-@keyframes rotate-rev { from { transform: translate(-50%, -50%) rotate(360deg); } to { transform: translate(-50%, -50%) rotate(0deg); } }
+/* 回転アニメーション */
+@keyframes rotate { 
+    from { transform: translate(-50%, -50%) rotate(0deg); } 
+    to { transform: translate(-50%, -50%) rotate(360deg); } 
+}
+@keyframes rotate-rev { 
+    from { transform: translate(-50%, -50%) rotate(360deg); } 
+    to { transform: translate(-50%, -50%) rotate(0deg); } 
+}
 
 /* --- 星（ノード）のデザイン --- */
 .node {
