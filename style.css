@@ -242,3 +242,40 @@ input, select {
     color: #fff; border-radius: 50%;
     font-size: 20px; backdrop-filter: blur(5px);
 
+/* 素材一覧をグリッド（カード形式）にする */
+.inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2列に並べる（iPhoneで見やすいサイズ） */
+    gap: 10px;
+    margin: 20px 0;
+}
+
+/* 素材一つ一つのカード */
+.item-slot {
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.item-icon {
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+.item-name {
+    font-size: 11px;
+    color: #ccc;
+    line-height: 1.2;
+    margin-bottom: 5px;
+}
+
+.item-count {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--accent-color);
+}
