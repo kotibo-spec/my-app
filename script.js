@@ -203,28 +203,27 @@ function submitTask() {
     const task = state.tasks.find(t => t.name === taskName);
     const totalWork = workMin * count;
 
+    // 1. カテゴリポイント獲得
     const cat = state.categories.find(c => c.name === task.cat);
     if (cat) cat.points += totalWork;
 
+    // 2. 素材ドロップ計算
     let dropCount = Math.floor(totalWork / 30);
     if (Math.random() < (totalWork % 30) / 30) dropCount++;
 
+    // --- ここで通知メッセージを作る ---
+    let message = `【${task.cat}】ポイント ＋${totalWork}pt`;
+
     if (dropCount > 0) {
-        const matName = `【${task.cat}】${task.suffix}`;
+        const matName = `【${task.cat}】${task.suffix}`; // ここで名前を確定
         state.inventory[matName] = (state.inventory[matName] || 0) + dropCount;
-        showToast(`${matName}を${dropCount}個獲得！`);
-    }
-    
-    // --- 通知を表示する処理を追加 ---
-    showToast(`【${task.cat}】ポイント ＋${totalWork}pt`);
-    
-    if (dropCount > 0) {
-        showToast(`${matName} を ${dropCount}個 獲得！`);
+        message += `\n${matName} を ${dropCount}個 獲得！`;
     } else {
-        showToast("作業を記録しました（素材抽出には時間が足りません）");
+        message += `\n(素材抽出には時間が足りませんでした)`;
     }
-    // ----------------------------
- 
+
+    showToast(message); // まとめて1回で通知！
+    
     closeAllModals();
     renderAll();
 }
@@ -305,21 +304,22 @@ function updateSelectBoxes() {
 
 function updateInventoryUI() {
     const inv = document.getElementById('inventory');
+    if (!inv) return;
     inv.innerHTML = '';
+    
     for (const name in state.inventory) {
         if (state.inventory[name] > 0) {
-            // 素材名から「】」より後ろ（の業火など）を抜き出す
             const suffix = name.split('】')[1];
-            // configから対応する絵文字を探す。なければ💎
             const suffixData = CONFIG.SUFFIXES.find(s => s.name === suffix);
             const icon = suffixData ? suffixData.icon : "💎";
 
+            // カード型の枠（item-slot）を作成
             const slot = document.createElement('div');
-            slot.className = 'item-slot'; // CSSのカード型デザインを適用
+            slot.className = 'item-slot'; 
             slot.innerHTML = `
-                <span class="item-icon">${icon}</span>
-                <span class="item-name">${name}</span>
-                <span class="item-count">${state.inventory[name]}</span>
+                <div class="item-icon">${icon}</div>
+                <div class="item-name">${name}</div>
+                <div class="item-count">${state.inventory[name]}個</div>
             `;
             inv.appendChild(slot);
         }
