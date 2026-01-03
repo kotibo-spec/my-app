@@ -47,34 +47,37 @@ function generateMaterial(attr) {
     const rand = Math.random();
     let rarity = "N";
     
-    // 1. レアリティ抽選
-    if (rand < 0.0001) rarity = "UR";
-    else if (rand < 0.01) rarity = "SSR";
-    else if (rand < 0.05) rarity = "SR";
+    // config.js の確率（chance）を読み込むように修正（これでコンフィグ変更が反映されます）
+    if (rand < CONFIG.RARITIES.UR.chance) rarity = "UR";
+    else if (rand < CONFIG.RARITIES.SSR.chance + CONFIG.RARITIES.UR.chance) rarity = "SSR";
+    else if (rand < CONFIG.RARITIES.SR.chance + 0.01) rarity = "SR"; // 境界調整
     else if (rand < 0.20) rarity = "R";
     else rarity = "N";
 
     const config = CONFIG.RARITIES[rarity];
     let fullName = "";
+    let icon = "💎";
 
-    // 2. 名称生成
     if (rarity === "UR") {
         const urList = [...CONFIG.UR_MATERIALS[attr], ...CONFIG.UR_MATERIALS["共通"]];
         fullName = urList[Math.floor(Math.random() * urList.length)];
+        icon = "👑"; // URは固定
     } else {
         const nouns = CONFIG.MATERIAL_NOUNS[rarity];
         const noun = nouns[Math.floor(Math.random() * nouns.length)];
         
-        // 接頭辞の選択
         const prefixGroup = CONFIG.MATERIAL_PREFIXES[attr];
         let prefixList = (rarity === "SSR") ? prefixGroup.SSR : 
                          (rarity === "N") ? prefixGroup.N : prefixGroup.RSR;
-        const prefix = prefixList[Math.floor(Math.random() * prefixList.length)];
         
-        fullName = `${prefix}${noun}`;
+        // 接頭辞データ（テキストとアイコンのセット）を取得
+        const prefixData = prefixList[Math.floor(Math.random() * prefixList.length)];
+        
+        fullName = `${prefixData.text}${noun}`;
+        icon = prefixData.icon; // ★言葉に紐づいた絵文字をセット！
     }
 
-    return { name: fullName, rarity: rarity, attr: attr, mult: config.mult };
+    return { name: fullName, rarity: rarity, attr: attr, mult: config.mult, icon: icon };
 }
 
 // --- 全描画 ---
@@ -329,11 +332,10 @@ function submitTask() {
     for (let i = 0; i < dropAttempts; i++) {
         const mat = generateMaterial(task.attr); // ガチャ実行
         
-        // インベントリに追加
+        // インベントリに追加（iconを追加）
         if (!state.inventory[mat.name]) {
-            state.inventory[mat.name] = { count: 0, rarity: mat.rarity, attr: mat.attr, mult: mat.mult };
+            state.inventory[mat.name] = { count: 0, rarity: mat.rarity, attr: mat.attr, mult: mat.mult, icon: mat.icon };
         }
-        state.inventory[mat.name].count++;
 
         // 図鑑に記録
         if (!state.archive[mat.name]) {
@@ -473,14 +475,8 @@ function updateInventoryUI() {
         const item = state.inventory[name];
         if (item.count <= 0) continue;
 
-        // レアリティと属性に合わせてアイコンを自動決定
-        let icon = "💎";
-        if (item.rarity === "UR") icon = "🔱";
-        else if (item.rarity === "SSR") icon = "🌟";
-        else {
-            const iconMap = { "火": "🔥", "水": "💧", "風": "🍃", "土": "🪨", "光": "✨", "闇": "💀" };
-            icon = iconMap[item.attr] || "💎";
-        }
+        // 素材が持っているアイコンを使用。古いデータのための予備も設定。
+        const icon = item.icon || "💎";
 
         const slot = document.createElement('div');
         slot.className = `item-slot rarity-${item.rarity.toLowerCase()}`; 
@@ -588,7 +584,6 @@ function renderArchive(sortBy = 'rarity') {
     if (!list) return;
     list.innerHTML = '';
 
-    // 図鑑に登録されている素材の名前を配列にする
     let itemNames = Object.keys(state.archive);
 
     if (itemNames.length === 0) {
@@ -598,7 +593,7 @@ function renderArchive(sortBy = 'rarity') {
 
     // 並び替えロジック
     itemNames.sort((a, b) => {
-        const itemA = state.inventory[a] || { rarity: "N", attr: "火" }; // 属性情報はインベントリから参照（なければN）
+        const itemA = state.inventory[a] || { rarity: "N", attr: "火" };
         const itemB = state.inventory[b] || { rarity: "N", attr: "火" };
 
         if (sortBy === 'rarity') {
@@ -606,24 +601,15 @@ function renderArchive(sortBy = 'rarity') {
             return order[itemA.rarity] - order[itemB.rarity];
         } else if (sortBy === 'attr') {
             return itemA.attr.localeCompare(itemB.attr);
-        } else {
-            // 発見順（日付などは必要に応じて追加）
-            return 0; 
         }
+        return 0;
     });
 
     itemNames.forEach(name => {
         const arch = state.archive[name];
-        const invInfo = state.inventory[name] || { rarity: "N", attr: "火" };
-        
-        // アイコン決定（インベントリと同じロジック）
-        let icon = "💎";
-        if (invInfo.rarity === "UR") icon = "🔱";
-        else if (invInfo.rarity === "SSR") icon = "🌟";
-        else {
-            const iconMap = { "火": "🔥", "水": "💧", "風": "🍃", "土": "🪨", "光": "✨", "闇": "💀" };
-            icon = iconMap[invInfo.attr] || "💎";
-        }
+        // ★ここを修正：インベントリに保存されているアイコン（item.icon）を使うようにしました
+        const invInfo = state.inventory[name] || { rarity: "N", attr: "火", icon: "💎" };
+        const icon = invInfo.icon || "💎";
 
         const slot = document.createElement('div');
         slot.className = `item-slot rarity-${invInfo.rarity.toLowerCase()}`;
