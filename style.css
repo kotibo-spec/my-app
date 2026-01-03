@@ -370,15 +370,11 @@ input, select {
     box-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
 }
 
-/* [SR] スーパーレア: ピンクに強く光る */
+/* [SR] スーパーレア: 黄金の輝き */
 .rarity-sr {
-    border-color: #ff0077 !important;
-    box-shadow: 0 0 15px rgba(255, 0, 119, 0.7);
-    animation: sr-pulse 2s infinite;
-}
-@keyframes sr-pulse {
-    0%, 100% { filter: brightness(1); }
-    50% { filter: brightness(1.3); }
+    border: 2px solid #ffcc00 !important; /* 金色に変更 */
+    box-shadow: 0 0 15px rgba(255, 204, 0, 0.6); /* 金色の光 */
+    background: linear-gradient(135deg, rgba(255, 204, 0, 0.1), rgba(0,0,0,0.5));
 }
 
 /* [SSR] ダブルスーパーレア: 虹色回転・明滅 */
@@ -467,4 +463,28 @@ input, select {
     font-size: 9px;
     color: #888;
     margin-top: 4px;
+}
+
+/* [R] レアの絵文字演出：呼吸するようにゆっくり光る */
+.rarity-r .item-icon {
+    animation: r-shine 3s infinite ease-in-out;
+}
+@keyframes r-shine {
+    0%, 100% { filter: brightness(1) drop-shadow(0 0 2px rgba(255,255,255,0.3)); }
+    50% { filter: brightness(1.5) drop-shadow(0 0 8px rgba(255,255,255,0.8)); }
+}
+
+/* [SR] スーパーレアの絵文字演出：フワフワ浮いてキラリと光る */
+.rarity-sr .item-icon {
+    animation: sr-float 2.5s infinite ease-in-out;
+}
+@keyframes sr-float {
+    0%, 100% { 
+        transform: translateY(0) scale(1);
+        filter: brightness(1) drop-shadow(0 0 5px gold);
+    }
+    50% { 
+        transform: translateY(-5px) scale(1.1); /* 少し浮いて大きくなる */
+        filter: brightness(1.8) drop-shadow(0 0 15px gold); /* 眩しく光る */
+    }
 }
