@@ -128,6 +128,7 @@ body {
     pointer-events: none;
     opacity: 0;
     transition: opacity 2s ease;
+    z-index: 1; /* 重なりを一番後ろに */
 }
 .flair-active { opacity: 1; animation: rotate 30s linear infinite; }
 
@@ -333,6 +334,8 @@ input, select {
     z-index: 5;
     /* 「呼吸」するように大きさが変わるアニメーション */
     animation: auraPulse 4s infinite ease-in-out;
+    pointer-events: none;
+    z-index: 2; 
 }
 
 @keyframes auraPulse {
@@ -342,8 +345,10 @@ input, select {
 
 /* 玉本体も呼吸させる */
 .core {
-    /* ...既存の設定にこれを追加、または上書き... */
     animation: coreBreath 4s infinite ease-in-out;
+    z-index: 100 !important; /* 絶対に一番手前にする */
+    pointer-events: auto;    /* 確実にクリックできるようにする */
+    cursor: pointer;
 }
 
 @keyframes coreBreath {
