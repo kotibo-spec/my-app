@@ -10,7 +10,8 @@ let state = {
 let statusChart = null;
 let isDragging = false;
 let startX, startY;
-let scrollX = -1000, scrollY = -1000; // 星図（2000x2000）の中心に合わせる初期値
+let scrollX = 0, scrollY = 0; // 移動距離
+let currentScale = 1.0; // ズーム倍率（1.0が通常）
 
 // --- 起動 ---
 window.onload = () => {
@@ -74,14 +75,17 @@ function updateCoreEvolution() {
 function setupDrag() {
     const stage = document.getElementById('stage');
     const container = document.getElementById('tree-container');
+    const btnIn = document.getElementById('btn-zoom-in');
+    const btnOut = document.getElementById('btn-zoom-out');
 
+    // 画面に移動とズームを反映させる関数
     const updateTransform = () => {
-        container.style.transform = `translate(${scrollX}px, ${scrollY}px)`;
+        container.style.transform = `translate(calc(-50% + ${scrollX}px), calc(-50% + ${scrollY}px)) scale(${currentScale})`;
     };
 
-    updateTransform(); // 初期位置
-
+    // ドラッグ（指で動かす）処理
     stage.addEventListener('pointerdown', (e) => {
+        if (e.target.closest('button') || e.target.closest('.modal')) return;
         isDragging = true;
         startX = e.clientX - scrollX;
         startY = e.clientY - scrollY;
@@ -95,6 +99,19 @@ function setupDrag() {
     });
 
     window.addEventListener('pointerup', () => { isDragging = false; });
+
+    // ズームボタンの処理
+    btnIn.onclick = () => {
+        currentScale = Math.min(currentScale + 0.2, 2.0); // 最大2倍まで
+        updateTransform();
+    };
+
+    btnOut.onclick = () => {
+        currentScale = Math.max(currentScale - 0.2, 0.2); // 最小0.2倍まで
+        updateTransform();
+    };
+
+    updateTransform(); // 最初の一回
 }
 
 // 星図ステージの描画
