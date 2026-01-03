@@ -495,7 +495,7 @@ function updateInventoryUI() {
         inv.appendChild(slot);
     }
 }
-#
+
 // 全履歴の描画
 function renderHistory() {
     const list = document.getElementById('history-list');
