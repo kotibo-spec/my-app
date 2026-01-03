@@ -3,8 +3,9 @@ let state = {
     level: 1, xp: 0,
     stats: { "火": 0, "水": 0, "風": 0, "土": 0, "光": 0, "闇": 0 },
     inventory: {},
-    categories: [], // { name: "漫画", points: 0, rank: 0 }
-    tasks: [],      // { name: "ネーム", cat: "漫画", suffix: "の業火" }
+    categories: [],
+    tasks: [],
+    history: [] // 全履歴をここに保存します
 };
 
 let statusChart = null;
@@ -33,10 +34,10 @@ function loadState() {
 function renderAll() {
     updateHeader();
     renderStage();
-    renderCategoryList(); // 削除用のリスト描画
+    renderCategoryList();
     updateInventoryUI();
-    updateSubTitlesUI();
-    updateCoreEvolution(); // コアの進化
+    updateStatusStatsUI(); // ←これを確認
+    updateCoreEvolution();
     saveState();
 }
 
@@ -194,36 +195,60 @@ function deleteCategory(name) {
 }
 
 // --- ロジック：報告送信 ---
+// 入力タイプの切り替え（HTMLから呼ばれる）
+function toggleReportType() {
+    const type = document.getElementById('report-type').value;
+    document.getElementById('input-pomo').classList.toggle('hidden', type !== 'pomo');
+    document.getElementById('input-manual').classList.toggle('hidden', type !== 'manual');
+}
+
 function submitTask() {
     const taskName = document.getElementById('task-select').value;
-    const workMin = parseInt(document.getElementById('pomo-work').value) || 0;
-    const count = parseInt(document.getElementById('pomo-count').value) || 0;
+    const reportType = document.getElementById('report-type').value;
     if (!taskName) return showToast("タスクを選択してください");
 
     const task = state.tasks.find(t => t.name === taskName);
-    const totalWork = workMin * count;
+    let totalWork = 0;
+    let logDetail = "";
 
-    // 1. カテゴリポイント獲得
+    // 1. ポイント計算
+    if (reportType === 'pomo') {
+        const workMin = parseInt(document.getElementById('pomo-work').value) || 0;
+        const count = parseInt(document.getElementById('pomo-count').value) || 1;
+        totalWork = workMin * count;
+        logDetail = `${workMin}分 × ${count}セット`;
+    } else {
+        const diff = document.getElementById('difficulty-select').value;
+        if (diff === 'easy') totalWork = 30;
+        else if (diff === 'normal') totalWork = 100;
+        else if (diff === 'hard') totalWork = 300;
+        logDetail = `難易度: ${diff.toUpperCase()}`;
+    }
+
+    // 2. 報酬付与
     const cat = state.categories.find(c => c.name === task.cat);
     if (cat) cat.points += totalWork;
 
-    // 2. 素材ドロップ計算
     let dropCount = Math.floor(totalWork / 30);
     if (Math.random() < (totalWork % 30) / 30) dropCount++;
 
-    // --- ここで通知メッセージを作る ---
     let message = `【${task.cat}】ポイント ＋${totalWork}pt`;
-
     if (dropCount > 0) {
-        const matName = `【${task.cat}】${task.suffix}`; // ここで名前を確定
+        const matName = `【${task.cat}】${task.suffix}`;
         state.inventory[matName] = (state.inventory[matName] || 0) + dropCount;
         message += `\n${matName} を ${dropCount}個 獲得！`;
-    } else {
-        message += `\n(素材抽出には時間が足りませんでした)`;
     }
 
-    showToast(message); // まとめて1回で通知！
-    
+    // 3. 全履歴ログへの保存
+    state.history.unshift({
+        date: new Date().toLocaleString('ja-JP'),
+        task: taskName,
+        cat: task.cat,
+        detail: logDetail,
+        point: totalWork
+    });
+
+    showToast(message);
     closeAllModals();
     renderAll();
 }
@@ -265,12 +290,19 @@ function unlockNode(catName, step) {
 // --- UI操作 ---
 function setupEventListeners() {
     document.getElementById('btn-report').onclick = () => openModal('modal-report');
+    document.getElementById('btn-logs').onclick = () => {
+        renderHistory(); // 履歴を描画してから開く
+        openModal('modal-logs');
+    };
     document.getElementById('btn-tree-manage').onclick = () => openModal('modal-config');
     document.getElementById('btn-settings').onclick = () => openModal('modal-settings');
+    
     document.getElementById('btn-submit-task').onclick = submitTask;
     document.getElementById('btn-evolve').onclick = evolveCore;
     document.getElementById('core-circle').onclick = () => openModal('modal-status');
 
+    // 以下、枝の追加・タスクの追加ボタンの処理が続く...
+    // (ここは既存のままでOKですが、もし消えていたら前のコードを維持してください)
     document.getElementById('btn-add-category').onclick = () => {
         const name = document.getElementById('new-cat-name').value.trim();
         if (name && !state.categories.find(c => c.name === name)) {
@@ -324,6 +356,54 @@ function updateInventoryUI() {
             inv.appendChild(slot);
         }
     }
+}
+
+// 全履歴の描画
+function renderHistory() {
+    const list = document.getElementById('history-list');
+    if (state.history.length === 0) {
+        list.innerHTML = '<p class="hint">まだ記録がありません。</p>';
+        return;
+    }
+    list.innerHTML = state.history.map(log => `
+        <div class="log-item">
+            <div class="log-date">${log.date}</div>
+            <div class="log-task">${log.task} 【${log.cat}】</div>
+            <div style="color:#aaa;">${log.detail} / ＋${log.point}pt</div>
+        </div>
+    `).join('');
+}
+
+// 属性数値リストの更新（ステータス画面用）
+function updateStatusStatsUI() {
+    const container = document.getElementById('sub-titles');
+    // サブ称号の表示の後に、属性数値をくっつける
+    let html = '<h3>サブ称号（熟練度）</h3>';
+    html += state.categories.map(c => {
+        if (c.rank === 0) return "";
+        const titleText = (c.rank === 10) ? `真の${c.name}` : `${c.name}${CONFIG.SUB_TITLES[c.rank-1]}`;
+        return `<div style="color:var(--accent-color); font-weight:bold; margin-bottom:5px;">◈ ${titleText} <small style="color:#555;">(${c.points}pt)</small></div>`;
+    }).join('');
+
+    html += '<h3 style="margin-top:20px;">属性ステータス</h3>';
+    html += CONFIG.ATTR_NAMES.map(attr => {
+        const val = state.stats[attr];
+        const nextThreshold = (Math.floor(val / 500) + 1) * 500; // 500刻みで目標設定
+        const percent = ((val % 500) / 500) * 100;
+        return `
+            <div class="attribute-item">
+                <div class="attr-info">
+                    <span>${attr}属性：${val}</span>
+                    <span style="font-size:10px; color:#555;">Next: ${nextThreshold}</span>
+                </div>
+                <div class="attr-gauge-bg">
+                    <div class="attr-gauge-fill" style="width: ${percent}%"></div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = html;
 }
 
 function updateSubTitlesUI() {
