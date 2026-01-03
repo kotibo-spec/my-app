@@ -412,6 +412,11 @@ function setupEventListeners() {
     document.getElementById('btn-submit-task').onclick = submitTask;
     document.getElementById('btn-evolve').onclick = evolveCore;
     document.getElementById('core-circle').onclick = () => openModal('modal-status');
+    
+    document.getElementById('btn-archive').onclick = () => {
+        renderArchive('rarity'); // 最初はレア度順で開く
+        openModal('modal-archive');
+    };
 
     // 以下、枝の追加・タスクの追加ボタンの処理が続く...
     // (ここは既存のままでOKですが、もし消えていたら前のコードを維持してください)
@@ -575,4 +580,60 @@ function showToast(msg) {
     t.innerText = msg;
     c.appendChild(t);
     setTimeout(() => { t.remove(); }, 3000);
+}
+
+// 図鑑（アーカイブ）の描画
+function renderArchive(sortBy = 'rarity') {
+    const list = document.getElementById('archive-list');
+    if (!list) return;
+    list.innerHTML = '';
+
+    // 図鑑に登録されている素材の名前を配列にする
+    let itemNames = Object.keys(state.archive);
+
+    if (itemNames.length === 0) {
+        list.innerHTML = '<p class="hint">未発見：素材を鑑定して図鑑を埋めよ</p>';
+        return;
+    }
+
+    // 並び替えロジック
+    itemNames.sort((a, b) => {
+        const itemA = state.inventory[a] || { rarity: "N", attr: "火" }; // 属性情報はインベントリから参照（なければN）
+        const itemB = state.inventory[b] || { rarity: "N", attr: "火" };
+
+        if (sortBy === 'rarity') {
+            const order = { UR: 0, SSR: 1, SR: 2, R: 3, N: 4 };
+            return order[itemA.rarity] - order[itemB.rarity];
+        } else if (sortBy === 'attr') {
+            return itemA.attr.localeCompare(itemB.attr);
+        } else {
+            // 発見順（日付などは必要に応じて追加）
+            return 0; 
+        }
+    });
+
+    itemNames.forEach(name => {
+        const arch = state.archive[name];
+        const invInfo = state.inventory[name] || { rarity: "N", attr: "火" };
+        
+        // アイコン決定（インベントリと同じロジック）
+        let icon = "💎";
+        if (invInfo.rarity === "UR") icon = "🔱";
+        else if (invInfo.rarity === "SSR") icon = "🌟";
+        else {
+            const iconMap = { "火": "🔥", "水": "💧", "風": "🍃", "土": "🪨", "光": "✨", "闇": "💀" };
+            icon = iconMap[invInfo.attr] || "💎";
+        }
+
+        const slot = document.createElement('div');
+        slot.className = `item-slot rarity-${invInfo.rarity.toLowerCase()}`;
+        slot.innerHTML = `
+            <div class="item-name" style="color:#fff; font-size:9px;">${invInfo.rarity}</div>
+            <div class="item-icon">${icon}</div>
+            <div class="item-name">${name}</div>
+            <div class="archive-info">獲得数: ${arch.count}回</div>
+            <div class="archive-info">初観測: ${arch.firstDate}</div>
+        `;
+        list.appendChild(slot);
+    });
 }
