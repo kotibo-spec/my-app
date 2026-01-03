@@ -221,7 +221,7 @@ function submitTask() {
         const diff = document.getElementById('difficulty-select').value;
         if (diff === 'easy') totalWork = 30;
         else if (diff === 'normal') totalWork = 100;
-        else if (diff === 'hard') totalWork = 300;
+        else if (diff === 'hard') totalWork = 200;
         logDetail = `難易度: ${diff.toUpperCase()}`;
     }
 
