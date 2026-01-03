@@ -8,6 +8,16 @@ let state = {
     history: [] // 全履歴をここに保存します
 };
 
+// 属性ごとのイメージカラー設定
+const ATTR_COLORS = {
+    "火": "#ff4400", // 赤
+    "水": "#0066ff", // 青
+    "風": "#00ff88", // 緑
+    "土": "#ffaa00", // オレンジ・琥珀
+    "光": "#ffffcc", // 白・黄
+    "闇": "#aa00ff"  // 紫
+};
+
 let statusChart = null;
 let isDragging = false;
 let startX, startY;
