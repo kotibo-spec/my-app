@@ -44,7 +44,7 @@ const CONFIG = {
         "光": {
             N: [ { text: "眩しい", icon: "🔆" }, { text: "淡い", icon: "🕯️" } ],
             RSR: [ { text: "聖光の", icon: "🕊️" }, { text: "天上の", icon: "👼" }, { text: "神裁の", icon: "⚖️" } ],
-            SSR: [ { text: "【唯一神の黙示録】", icon: "📖" }, { text: "【神域からの裁き】", icon: "👁️" } ]
+            SSR: [ { text: "【唯一神の黙示録】", icon: "📖" }, { text: "【神域からの裁き】", icon: "🗝" } ]
         },
         "闇": {
             N: [ { text: "淀んだ", icon: "🌫️" }, { text: "暗い", icon: "🌑" } ],
