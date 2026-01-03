@@ -34,15 +34,16 @@
         <svg id="tree-svg"></svg>
         <!-- 玉（コア）をここ（枝と同じ箱）に移動しました -->
 <div id="core-wrapper">
-    <!-- 5レベルごとの巨大演出用 -->
+    <!-- 後ろから順番に並べるのがコツです -->
     <div id="stage-flair" class="stage-flair"></div>
     <div id="core-aura" class="core-aura"></div>
-    <!-- ここにレベル分のリングが自動生成されます -->
     <div id="ring-container"></div>
     
-    <div id="core-circle" class="core"></div>
+    <!-- 玉（クリックするやつ）を一番最後に書くことで、一番手前に来ます -->
+    <div id="core-circle" class="core" onclick="openModal('modal-status')"></div>
 </div>
     </div>
+    
 </main>
 
         <!-- フッター：ナビゲーション -->
