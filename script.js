@@ -84,11 +84,44 @@ function updateHeader() {
 
 // コアの進化（リングの表示）
 function updateCoreEvolution() {
-    const ring = document.getElementById('core-ring');
-    const count = state.categories.length;
-    ring.className = "core-ring"; // リセット
-    if (count >= 1) ring.classList.add('ring-1');
-    if (count >= 4) ring.classList.add('ring-2');
+    const container = document.getElementById('ring-container');
+    const flair = document.getElementById('stage-flair');
+    if (!container || !flair) return;
+
+    // 1. リングの生成（レベルの数だけ出す）
+    container.innerHTML = ''; // 一旦クリア
+    for (let i = 1; i <= state.level; i++) {
+        const ring = document.createElement('div');
+        ring.className = 'core-ring';
+        
+        // 外側にいくほど大きくする
+        const size = 110 + (i * 15); 
+        ring.style.width = size + 'px';
+        ring.style.height = size + 'px';
+        
+        // 奇数と偶数で回転方向を変える
+        const anim = (i % 2 === 0) ? 'rotate' : 'rotate-rev';
+        const speed = 5 + (i * 2); // 外側ほどゆっくり回る
+        ring.style.animation = `${anim} ${speed}s linear infinite`;
+        
+        // 5つごとに線を少し太く、明るくする
+        if (i % 5 === 0) {
+            ring.style.borderWidth = '2px';
+            ring.style.borderColor = `rgba(var(--accent-rgb), 0.5)`;
+        }
+        
+        container.appendChild(ring);
+    }
+
+    // 2. 5レベルごとの豪華演出
+    if (state.level >= 5) {
+        flair.classList.add('flair-active');
+        // レベルが高いほど巨大魔法陣が複雑になる（影を濃くする）
+        const shadowPower = Math.min(state.level * 2, 40);
+        flair.style.boxShadow = `inset 0 0 ${shadowPower}px var(--accent-color)`;
+    } else {
+        flair.classList.remove('flair-active');
+    }
 }
 
 // --- 星図（ドラッグ移動）の設定 ---
