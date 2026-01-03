@@ -2,11 +2,13 @@
 let state = {
     level: 1, xp: 0,
     stats: { "火": 0, "水": 0, "風": 0, "土": 0, "光": 0, "闇": 0 },
-    inventory: {},
+    // 素材データを詳細に持つように変更
+    inventory: {}, // "素材名": { count: 1, rarity: "N", attr: "火" }
+    archive: {},   // 図鑑データ "素材名": { count: 1, firstDate: "..." }
     categories: [],
     tasks: [],
-    history: [] // 全履歴をここに保存します
-};
+    history: []
+};(
 
 // 属性ごとのイメージカラー設定
 const ATTR_COLORS = {
@@ -38,6 +40,41 @@ function saveState() { localStorage.setItem('coreAlchemistData', JSON.stringify(
 function loadState() {
     const saved = localStorage.getItem('coreAlchemistData');
     if (saved) state = Object.assign(state, JSON.parse(saved));
+}
+
+// 素材ガチャ（鑑定）ロジック
+function generateMaterial(attr) {
+    const rand = Math.random();
+    let rarity = "N";
+    
+    // 1. レアリティ抽選
+    if (rand < 0.0001) rarity = "UR";
+    else if (rand < 0.01) rarity = "SSR";
+    else if (rand < 0.05) rarity = "SR";
+    else if (rand < 0.20) rarity = "R";
+    else rarity = "N";
+
+    const config = CONFIG.RARITIES[rarity];
+    let fullName = "";
+
+    // 2. 名称生成
+    if (rarity === "UR") {
+        const urList = [...CONFIG.UR_MATERIALS[attr], ...CONFIG.UR_MATERIALS["共通"]];
+        fullName = urList[Math.floor(Math.random() * urList.length)];
+    } else {
+        const nouns = CONFIG.MATERIAL_NOUNS[rarity];
+        const noun = nouns[Math.floor(Math.random() * nouns.length)];
+        
+        // 接頭辞の選択
+        const prefixGroup = CONFIG.MATERIAL_PREFIXES[attr];
+        let prefixList = (rarity === "SSR") ? prefixGroup.SSR : 
+                         (rarity === "N") ? prefixGroup.N : prefixGroup.RSR;
+        const prefix = prefixList[Math.floor(Math.random() * prefixList.length)];
+        
+        fullName = `${prefix}${noun}`;
+    }
+
+    return { name: fullName, rarity: rarity, attr: attr, mult: config.mult };
 }
 
 // --- 全描画 ---
@@ -270,7 +307,6 @@ function submitTask() {
     let totalWork = 0;
     let logDetail = "";
 
-    // 1. ポイント計算
     if (reportType === 'pomo') {
         const workMin = parseInt(document.getElementById('pomo-work').value) || 0;
         const count = parseInt(document.getElementById('pomo-count').value) || 1;
@@ -278,36 +314,45 @@ function submitTask() {
         logDetail = `${workMin}分 × ${count}セット`;
     } else {
         const diff = document.getElementById('difficulty-select').value;
-        if (diff === 'easy') totalWork = 30;
-        else if (diff === 'normal') totalWork = 100;
-        else if (diff === 'hard') totalWork = 200;
+        const pts = { easy: 30, normal: 100, hard: 200 };
+        totalWork = pts[diff];
         logDetail = `難易度: ${diff.toUpperCase()}`;
     }
 
-    // 2. 報酬付与
     const cat = state.categories.find(c => c.name === task.cat);
     if (cat) cat.points += totalWork;
 
-    let dropCount = Math.floor(totalWork / 30);
-    if (Math.random() < (totalWork % 30) / 30) dropCount++;
+    // --- ガチャ判定（30ptにつき1回抽選） ---
+    let dropAttempts = Math.max(1, Math.floor(totalWork / 30));
+    let dropMsg = "";
+    
+    for (let i = 0; i < dropAttempts; i++) {
+        const mat = generateMaterial(task.cat); // ガチャ実行
+        
+        // インベントリに追加
+        if (!state.inventory[mat.name]) {
+            state.inventory[mat.name] = { count: 0, rarity: mat.rarity, attr: mat.attr, mult: mat.mult };
+        }
+        state.inventory[mat.name].count++;
 
-    let message = `【${task.cat}】ポイント ＋${totalWork}pt`;
-    if (dropCount > 0) {
-        const matName = `【${task.cat}】${task.suffix}`;
-        state.inventory[matName] = (state.inventory[matName] || 0) + dropCount;
-        message += `\n${matName} を ${dropCount}個 獲得！`;
+        // 図鑑に記録
+        if (!state.archive[mat.name]) {
+            state.archive[mat.name] = { count: 0, firstDate: new Date().toLocaleDateString('ja-JP') };
+            dropMsg += `\n【NEW!】${mat.name} (${mat.rarity})`;
+        } else {
+            dropMsg += `\n${mat.name} (${mat.rarity})`;
+        }
+        state.archive[mat.name].count++;
+
+        // レア演出
+        if (mat.rarity === "UR" || mat.rarity === "SSR") {
+            setTimeout(() => showToast(`！！！奇跡発生：${mat.name}！！！`), 500);
+        }
     }
 
-    // 3. 全履歴ログへの保存
-    state.history.unshift({
-        date: new Date().toLocaleString('ja-JP'),
-        task: taskName,
-        cat: task.cat,
-        detail: logDetail,
-        point: totalWork
-    });
-
-    showToast(message);
+    showToast(`【${task.cat}】＋${totalWork}pt 獲得！${dropMsg}`);
+    
+    state.history.unshift({ date: new Date().toLocaleString('ja-JP'), task: taskName, detail: logDetail, point: totalWork });
     closeAllModals();
     renderAll();
 }
@@ -398,25 +443,29 @@ function updateInventoryUI() {
     if (!inv) return;
     inv.innerHTML = '';
     
-    for (const name in state.inventory) {
-        if (state.inventory[name] > 0) {
-            const suffix = name.split('】')[1];
-            const suffixData = CONFIG.SUFFIXES.find(s => s.name === suffix);
-            const icon = suffixData ? suffixData.icon : "💎";
+    // レアリティ順に並び替えて表示
+    const sortedKeys = Object.keys(state.inventory).sort((a, b) => {
+        const order = { UR: 0, SSR: 1, SR: 2, R: 3, N: 4 };
+        return order[state.inventory[a].rarity] - order[state.inventory[b].rarity];
+    });
 
-            // カード型の枠（item-slot）を作成
-            const slot = document.createElement('div');
-            slot.className = 'item-slot'; 
-            slot.innerHTML = `
-                <div class="item-icon">${icon}</div>
-                <div class="item-name">${name}</div>
-                <div class="item-count">${state.inventory[name]}個</div>
-            `;
-            inv.appendChild(slot);
-        }
+    for (const name of sortedKeys) {
+        const item = state.inventory[name];
+        if (item.count <= 0) continue;
+
+        const slot = document.createElement('div');
+        // CSSのレアリティクラスを適用
+        slot.className = `item-slot rarity-${item.rarity.toLowerCase()}`; 
+        
+        slot.innerHTML = `
+            <div class="item-name" style="color:#fff; font-size:9px;">${item.rarity}</div>
+            <div class="item-icon">💎</div>
+            <div class="item-name">${name}</div>
+            <div class="item-count">${item.count}個</div>
+        `;
+        inv.appendChild(slot);
     }
 }
-
 // 全履歴の描画
 function renderHistory() {
     const list = document.getElementById('history-list');
