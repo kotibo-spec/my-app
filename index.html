@@ -23,16 +23,22 @@
         </header>
 
         <!-- メイン：星図ステージ（ドラッグ可能） -->
-        <main id="stage">
-            <div id="tree-container">
-                <svg id="tree-svg"></svg>
-            </div>
-            <!-- コア：枝の数に応じて進化する -->
-            <div id="core-wrapper">
-                <div id="core-circle" class="core"></div>
-                <div id="core-ring" class="core-ring"></div>
-            </div>
-        </main>
+<main id="stage">
+    <!-- ズームボタン -->
+    <div class="zoom-controls">
+        <button id="btn-zoom-in">＋</button>
+        <button id="btn-zoom-out">ー</button>
+    </div>
+
+    <div id="tree-container">
+        <svg id="tree-svg"></svg>
+        <!-- 玉（コア）をここ（枝と同じ箱）に移動しました -->
+        <div id="core-wrapper">
+            <div id="core-circle" class="core"></div>
+            <div id="core-ring" class="core-ring"></div>
+        </div>
+    </div>
+</main>
 
         <!-- フッター：ナビゲーション -->
         <nav class="app-nav">
