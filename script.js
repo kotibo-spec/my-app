@@ -327,7 +327,7 @@ function submitTask() {
     let dropMsg = "";
     
     for (let i = 0; i < dropAttempts; i++) {
-        const mat = generateMaterial(task.cat); // ガチャ実行
+        const mat = generateMaterial(task.attr); // ガチャ実行
         
         // インベントリに追加
         if (!state.inventory[mat.name]) {
@@ -428,11 +428,13 @@ function setupEventListeners() {
     document.getElementById('btn-add-task').onclick = () => {
         const name = document.getElementById('new-task-name').value.trim();
         const cat = document.getElementById('new-task-cat').value;
-        const suffix = document.getElementById('new-task-suffix').value;
-        if (name && cat) {
-            state.tasks.push({ name: name, cat: cat, suffix: suffix });
+        const attr = document.getElementById('new-task-suffix').value; // 属性を取得
+        if (name && cat && attr) {
+            // suffix ではなく attr という名前で属性を保存します
+            state.tasks.push({ name: name, cat: cat, attr: attr }); 
             document.getElementById('new-task-name').value = "";
-            updateSelectBoxes(); showToast("タスクを記録。");
+            updateSelectBoxes(); 
+            showToast(`タスク「${name}」を登録（${attr}属性）`);
         }
     };
 }
@@ -445,11 +447,11 @@ function updateSelectBoxes() {
     const catSel = document.getElementById('new-task-cat');
     const sufSel = document.getElementById('new-task-suffix');
 
-    if (taskSel) taskSel.innerHTML = state.tasks.map(t => `<option value="${t.name}">${t.name} (${t.cat})</option>`).join('');
+    if (taskSel) taskSel.innerHTML = state.tasks.map(t => `<option value="${t.name}">${t.name} (${t.cat} / ${t.attr})</option>`).join('');
     if (catSel) catSel.innerHTML = state.categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
     
-    // 素材の名前はドロップ時にランダムに決まるので、ここでは「ランダム鑑定」という表示にします
-    if (sufSel) sufSel.innerHTML = `<option value="random">システムによるランダム鑑定</option>`;
+    // ここを修正：属性（火・水など）を選べるようにします
+    if (sufSel) sufSel.innerHTML = CONFIG.ATTR_NAMES.map(a => `<option value="${a}">${a}属性</option>`).join('');
 }
 
 function updateInventoryUI() {
