@@ -10,12 +10,12 @@ let state = {
 
 // 属性ごとのイメージカラー設定
 const ATTR_COLORS = {
-    "火": "#ff4400", // 赤
-    "水": "#0066ff", // 青
-    "風": "#00ff88", // 緑
-    "土": "#ffaa00", // オレンジ・琥珀
-    "光": "#ffffcc", // 白・黄
-    "闇": "#aa00ff"  // 紫
+    "火": "255, 68, 0",   // 赤
+    "水": "0, 102, 255",  // 青
+    "風": "0, 255, 136",  // 緑
+    "土": "255, 170, 0",  // 橙
+    "光": "255, 255, 204",// 白黄
+    "闇": "170, 0, 255"   // 紫
 };
 
 let statusChart = null;
@@ -57,7 +57,6 @@ function updateHeader() {
     const userLevel = document.getElementById('user-level');
     const xpBar = document.getElementById('xp-bar');
 
-    // 1. 最強属性を特定（ここは既存のロジック）
     let maxAttr = "火";
     let maxVal = -1;
     CONFIG.ATTR_NAMES.forEach(a => {
@@ -67,13 +66,11 @@ function updateHeader() {
         }
     });
 
-    // --- ★ここから追加：アプリの色を最強属性の色に塗り替える ---
-    const themeColor = ATTR_COLORS[maxAttr] || "#00f2ff";
-    // CSSの「--accent-color」を直接書き換える
-    document.documentElement.style.setProperty('--accent-color', themeColor);
-    // -------------------------------------------------------
+    // --- ここで色を反映（RGBの数字としてセット） ---
+    const themeRGB = ATTR_COLORS[maxAttr] || "0, 242, 255";
+    document.documentElement.style.setProperty('--accent-rgb', themeRGB);
+    // --------------------------------------------
 
-    // 2. 称号の決定
     const prefixList = CONFIG.MAIN_PREFIX[maxAttr];
     const prefix = prefixList[Math.min(Math.floor((state.level - 1) / 3), prefixList.length - 1)];
     const rankName = CONFIG.MAIN_RANKS[Math.min(state.level - 1, CONFIG.MAIN_RANKS.length - 1)];
@@ -82,8 +79,7 @@ function updateHeader() {
     userLevel.innerText = state.level;
 
     const nextXp = state.level * 1000; 
-    const xpPercent = Math.min((state.xp / nextXp) * 100, 100);
-    xpBar.style.width = xpPercent + "%";
+    xpBar.style.width = Math.min((state.xp / nextXp) * 100, 100) + "%";
 }
 
 // コアの進化（リングの表示）
