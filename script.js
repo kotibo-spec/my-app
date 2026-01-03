@@ -8,7 +8,7 @@ let state = {
     categories: [],
     tasks: [],
     history: []
-};(
+};
 
 // 属性ごとのイメージカラー設定
 const ATTR_COLORS = {
@@ -361,24 +361,32 @@ function submitTask() {
 function evolveCore() {
     let totalGainXp = 0;
     let hasItems = false;
+    
     for (const name in state.inventory) {
-        const count = state.inventory[name];
-        if (count <= 0) continue;
+        const item = state.inventory[name];
+        if (!item || item.count <= 0) continue;
         hasItems = true;
-        const suffixOnly = name.split('】')[1];
-        const conf = CONFIG.SUFFIXES.find(s => s.name === suffixOnly);
-        if (conf) {
-            state.stats[conf.attr] += count * 5;
-            totalGainXp += count * 100;
-        }
+
+        // 今のアイテム情報（属性と倍率）をそのまま使う
+        const power = item.count * 5 * item.mult;
+        state.stats[item.attr] += power;
+        totalGainXp += power * 20; 
     }
-    if (!hasItems) return showToast("素材がありません");
-    state.inventory = {};
+
+    if (!hasItems) return showToast("捧げる素材がありません");
+
+    state.inventory = {}; // 全部捧げる
     state.xp += totalGainXp;
-    while (state.xp >= state.level * 1000) { state.xp -= state.level * 1000; state.level++; }
+
+    while (state.xp >= state.level * 1000) {
+        state.xp -= state.level * 1000;
+        state.level++;
+        showToast("Lv UP!! あなたの存在が昇華されました。");
+    }
+
+    showToast("ステータスと総合経験値が上昇！");
     updateRadarChart();
     renderAll();
-    showToast("コアが輝きを増した！");
 }
 
 function unlockNode(catName, step) {
@@ -433,9 +441,15 @@ function openModal(id) { document.getElementById(id).classList.remove('hidden');
 function closeAllModals() { document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden')); }
 
 function updateSelectBoxes() {
-    document.getElementById('task-select').innerHTML = state.tasks.map(t => `<option value="${t.name}">${t.name} (${t.cat})</option>`).join('');
-    document.getElementById('new-task-cat').innerHTML = state.categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
-    document.getElementById('new-task-suffix').innerHTML = CONFIG.SUFFIXES.map(s => `<option value="${s.name}">${s.icon} ${s.name}</option>`).join('');
+    const taskSel = document.getElementById('task-select');
+    const catSel = document.getElementById('new-task-cat');
+    const sufSel = document.getElementById('new-task-suffix');
+
+    if (taskSel) taskSel.innerHTML = state.tasks.map(t => `<option value="${t.name}">${t.name} (${t.cat})</option>`).join('');
+    if (catSel) catSel.innerHTML = state.categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+    
+    // 素材の名前はドロップ時にランダムに決まるので、ここでは「ランダム鑑定」という表示にします
+    if (sufSel) sufSel.innerHTML = `<option value="random">システムによるランダム鑑定</option>`;
 }
 
 function updateInventoryUI() {
