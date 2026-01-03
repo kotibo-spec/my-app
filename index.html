@@ -52,17 +52,17 @@
         <span class="icon">＋</span>
         <span class="label">報告</span>
     </button>
+    <button id="btn-archive" class="nav-btn"> <!-- これを追加 -->
+        <span class="icon">💎</span>
+        <span class="label">図鑑</span>
+    </button>
     <button id="btn-logs" class="nav-btn">
         <span class="icon">📜</span>
         <span class="label">記録</span>
     </button>
     <button id="btn-tree-manage" class="nav-btn">
         <span class="icon">🌿</span>
-        <span class="label">枝・タスク</span>
-    </button>
-    <button id="btn-settings" class="nav-btn">
-        <span class="icon">⚙️</span>
-        <span class="label">設定</span>
+        <span class="label">管理</span>
     </button>
 </nav>
 
@@ -189,6 +189,25 @@
         <h2>冒険の記録（全履歴）</h2>
         <div id="history-list" class="history-list">
             <!-- ここに全ログが並びます -->
+        </div>
+    </div>
+</div>
+
+<!-- モーダル：素材図鑑 -->
+<div id="modal-archive" class="modal hidden">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeAllModals()">×</button>
+        <h2>マテリアル・アーカイブ</h2>
+        
+        <!-- 並び替えスイッチ -->
+        <div class="sort-controls">
+            <button onclick="renderArchive('rarity')">レア順</button>
+            <button onclick="renderArchive('attr')">属性順</button>
+            <button onclick="renderArchive('date')">発見順</button>
+        </div>
+
+        <div id="archive-list" class="inventory-grid">
+            <!-- ここに図鑑の項目が並びます -->
         </div>
     </div>
 </div>
