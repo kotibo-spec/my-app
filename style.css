@@ -318,3 +318,41 @@ input, select {
 }
 .log-date { color: #777; font-size: 10px; margin-bottom: 4px; }
 .log-task { color: var(--accent-color); font-weight: bold; font-size: 14px; }
+
+/* --- 生きているようなオーラ演出 --- */
+.core-aura {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    /* 属性の色でボワーッと光らせる */
+    background: var(--accent-color);
+    filter: blur(40px);
+    opacity: 0.4;
+    z-index: 5;
+    /* 「呼吸」するように大きさが変わるアニメーション */
+    animation: auraPulse 4s infinite ease-in-out;
+}
+
+@keyframes auraPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+    50% { transform: translate(-50%, -50%) scale(1.8); opacity: 0.6; }
+}
+
+/* 玉本体も呼吸させる */
+.core {
+    /* ...既存の設定にこれを追加、または上書き... */
+    animation: coreBreath 4s infinite ease-in-out;
+}
+
+@keyframes coreBreath {
+    0%, 100% { transform: scale(1); filter: brightness(1) drop-shadow(0 0 20px var(--accent-color)); }
+    50% { transform: scale(1.05); filter: brightness(1.4) drop-shadow(0 0 50px var(--accent-color)); }
+}
+
+/* リングの回転をより滑らかに、かつ「ブレ」を追加 */
+.core-ring {
+    /* 線の太さを少しランダムに見せるための光彩 */
+    box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.3);
+}
