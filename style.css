@@ -13,7 +13,6 @@
 * {
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
-    touch-action: none; /* 画面のガタつき（バウンド）を根本から止める */
 }
 
 body {
@@ -63,7 +62,7 @@ body {
     position: relative;
     width: 100vw; height: 100vh;
     z-index: 1;
-    cursor: grab;
+    touch-action: none; /* ←ここに追加 */
 }
 #stage:active { cursor: grabbing; }
 
@@ -193,13 +192,14 @@ body {
 .modal-content {
     width: 100%;
     max-height: 85vh;
-    background: #111118; /* 真っ黒より少し明るい紺色 */
+    background: #111118;
     border-radius: 25px 25px 0 0;
-    padding: 25px 20px calc(20px + var(--safe-bottom));
-    overflow-y: auto;
+    padding: 25px 20px calc(40px + var(--safe-bottom));
+    overflow-y: scroll; /* autoからscrollに変更 */
+    -webkit-overflow-scrolling: touch; /* iPhone用スクロール強化 */
     border-top: 2px solid var(--accent-color);
     position: relative;
-    color: #ffffff; /* ← これを追加：中の文字を全部白にする */
+    color: #ffffff;
 }
 
 /* リスト内の文字を見やすくする */
