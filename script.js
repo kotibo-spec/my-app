@@ -501,7 +501,9 @@ function updateInventoryUI() {
     // レアリティ順に並び替え
     validKeys.sort((a, b) => {
         const order = { UR: 0, SSR: 1, SR: 2, R: 3, N: 4 };
-        return (order[state.inventory[a].rarity] || 99) - (order[state.inventory[b].rarity] || 99);
+        const valA = order[state.inventory[a].rarity] ?? 99;
+        const valB = order[state.inventory[b].rarity] ?? 99;
+        return valA - valB;
     });
 
     for (const name of validKeys) {
@@ -631,7 +633,7 @@ function renderArchive(sortBy = 'rarity') {
 
         if (sortBy === 'rarity') {
             const order = { UR: 0, SSR: 1, SR: 2, R: 3, N: 4 };
-            return order[itemA.rarity] - order[itemB.rarity];
+            return (order[itemA.rarity] ?? 99) - (order[itemB.rarity] ?? 99);
         } else if (sortBy === 'attr') {
             return itemA.attr.localeCompare(itemB.attr);
         }
