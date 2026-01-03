@@ -57,20 +57,33 @@ function updateHeader() {
     const userLevel = document.getElementById('user-level');
     const xpBar = document.getElementById('xp-bar');
 
+    // 1. 最強属性を特定（ここは既存のロジック）
     let maxAttr = "火";
     let maxVal = -1;
     CONFIG.ATTR_NAMES.forEach(a => {
-        if (state.stats[a] > maxVal) { maxVal = state.stats[a]; maxAttr = a; }
+        if (state.stats[a] > maxVal) {
+            maxVal = state.stats[a];
+            maxAttr = a;
+        }
     });
 
+    // --- ★ここから追加：アプリの色を最強属性の色に塗り替える ---
+    const themeColor = ATTR_COLORS[maxAttr] || "#00f2ff";
+    // CSSの「--accent-color」を直接書き換える
+    document.documentElement.style.setProperty('--accent-color', themeColor);
+    // -------------------------------------------------------
+
+    // 2. 称号の決定
     const prefixList = CONFIG.MAIN_PREFIX[maxAttr];
     const prefix = prefixList[Math.min(Math.floor((state.level - 1) / 3), prefixList.length - 1)];
     const rankName = CONFIG.MAIN_RANKS[Math.min(state.level - 1, CONFIG.MAIN_RANKS.length - 1)];
     
     mainTitle.innerText = `【${prefix}】${rankName}`;
     userLevel.innerText = state.level;
+
     const nextXp = state.level * 1000; 
-    xpBar.style.width = Math.min((state.xp / nextXp) * 100, 100) + "%";
+    const xpPercent = Math.min((state.xp / nextXp) * 100, 100);
+    xpBar.style.width = xpPercent + "%";
 }
 
 // コアの進化（リングの表示）
