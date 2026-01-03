@@ -325,19 +325,20 @@ function submitTask() {
     const cat = state.categories.find(c => c.name === task.cat);
     if (cat) cat.points += totalWork;
 
-    // --- ガチャ判定（30ptにつき1回抽選） ---
+    // ガチャ判定
     let dropAttempts = Math.max(1, Math.floor(totalWork / 30));
     let dropMsg = "";
     
     for (let i = 0; i < dropAttempts; i++) {
-        const mat = generateMaterial(task.attr); // ガチャ実行
+        const mat = generateMaterial(task.attr); 
         
-        // インベントリに追加（iconを追加）
-        if (!state.inventory[mat.name]) {
+        // インベントリへの追加（ここを安全な書き方に変更）
+        if (!state.inventory[mat.name] || typeof state.inventory[mat.name] !== 'object') {
             state.inventory[mat.name] = { count: 0, rarity: mat.rarity, attr: mat.attr, mult: mat.mult, icon: mat.icon };
         }
+        state.inventory[mat.name].count++;
 
-        // 図鑑に記録
+        // 図鑑への記録
         if (!state.archive[mat.name]) {
             state.archive[mat.name] = { count: 0, firstDate: new Date().toLocaleDateString('ja-JP') };
             dropMsg += `\n【NEW!】${mat.name} (${mat.rarity})`;
@@ -346,7 +347,6 @@ function submitTask() {
         }
         state.archive[mat.name].count++;
 
-        // レア演出
         if (mat.rarity === "UR" || mat.rarity === "SSR") {
             setTimeout(() => showToast(`！！！奇跡発生：${mat.name}！！！`), 500);
         }
@@ -466,30 +466,36 @@ function updateInventoryUI() {
     if (!inv) return;
     inv.innerHTML = '';
     
-    const sortedKeys = Object.keys(state.inventory).sort((a, b) => {
-        const order = { UR: 0, SSR: 1, SR: 2, R: 3, N: 4 };
-        return order[state.inventory[a].rarity] - order[state.inventory[b].rarity];
+    // エラー防止：古い形式（数字だけ）のデータを排除してリスト化
+    const validKeys = Object.keys(state.inventory).filter(key => {
+        return state.inventory[key] && typeof state.inventory[key] === 'object' && state.inventory[key].rarity;
     });
 
-    for (const name of sortedKeys) {
+    // レアリティ順に並び替え
+    validKeys.sort((a, b) => {
+        const order = { UR: 0, SSR: 1, SR: 2, R: 3, N: 4 };
+        return (order[state.inventory[a].rarity] || 99) - (order[state.inventory[b].rarity] || 99);
+    });
+
+    for (const name of validKeys) {
         const item = state.inventory[name];
         if (item.count <= 0) continue;
 
-        // 素材が持っているアイコンを使用。古いデータのための予備も設定。
-        const icon = item.icon || "💎";
-
         const slot = document.createElement('div');
-        slot.className = `item-slot rarity-${item.rarity.toLowerCase()}`; 
+        // 安全にクラス名を設定
+        const rarityClass = item.rarity ? item.rarity.toLowerCase() : 'n';
+        slot.className = `item-slot rarity-${rarityClass}`; 
+        
         slot.innerHTML = `
             <div class="item-name" style="color:#fff; font-size:9px;">${item.rarity}</div>
-            <div class="item-icon">${icon}</div>
+            <div class="item-icon">${item.icon || "💎"}</div>
             <div class="item-name">${name}</div>
             <div class="item-count">${item.count}個</div>
         `;
         inv.appendChild(slot);
     }
 }
-
+#
 // 全履歴の描画
 function renderHistory() {
     const list = document.getElementById('history-list');
