@@ -2,7 +2,7 @@
 :root {
     --bg-color: #020205; /* 深宇宙の黒 */
     --card-bg: rgba(10, 10, 20, 0.95);
-    --accent-color: #00f2ff; /* シアン（星の輝き） */
+    --accent-color: var(--accent-color); /* シアン（星の輝き） */
     --p-color: #ff0077; /* マゼンタ（警告・レア） */
     --gold-color: #ffcc00; /* 進化の金 */
     --star-glow: 0 0 15px rgba(0, 242, 255, 0.8);
