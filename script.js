@@ -443,7 +443,6 @@ function updateInventoryUI() {
     if (!inv) return;
     inv.innerHTML = '';
     
-    // レアリティ順に並び替えて表示
     const sortedKeys = Object.keys(state.inventory).sort((a, b) => {
         const order = { UR: 0, SSR: 1, SR: 2, R: 3, N: 4 };
         return order[state.inventory[a].rarity] - order[state.inventory[b].rarity];
@@ -453,19 +452,27 @@ function updateInventoryUI() {
         const item = state.inventory[name];
         if (item.count <= 0) continue;
 
+        // レアリティと属性に合わせてアイコンを自動決定
+        let icon = "💎";
+        if (item.rarity === "UR") icon = "🔱";
+        else if (item.rarity === "SSR") icon = "🌟";
+        else {
+            const iconMap = { "火": "🔥", "水": "💧", "風": "🍃", "土": "🪨", "光": "✨", "闇": "💀" };
+            icon = iconMap[item.attr] || "💎";
+        }
+
         const slot = document.createElement('div');
-        // CSSのレアリティクラスを適用
         slot.className = `item-slot rarity-${item.rarity.toLowerCase()}`; 
-        
         slot.innerHTML = `
             <div class="item-name" style="color:#fff; font-size:9px;">${item.rarity}</div>
-            <div class="item-icon">💎</div>
+            <div class="item-icon">${icon}</div>
             <div class="item-name">${name}</div>
             <div class="item-count">${item.count}個</div>
         `;
         inv.appendChild(slot);
     }
 }
+
 // 全履歴の描画
 function renderHistory() {
     const list = document.getElementById('history-list');
