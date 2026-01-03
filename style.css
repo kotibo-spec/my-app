@@ -194,10 +194,18 @@ body {
 }
 
 .nav-btn {
-    background: none; border: none; color: #666;
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
-    font-size: 10px; font-weight: bold;
+    background: none;
+    border: none;
+    color: #666;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: 9px; /* 10pxから9pxに少し小さく */
+    width: 20%;    /* 5等分する */
+    cursor: pointer;
 }
+
 .nav-btn.primary { color: var(--accent-color); }
 .nav-btn.primary .icon {
     font-size: 24px; background: var(--accent-color); color: #000;
