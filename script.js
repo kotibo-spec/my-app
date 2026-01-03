@@ -214,6 +214,17 @@ function submitTask() {
         state.inventory[matName] = (state.inventory[matName] || 0) + dropCount;
         showToast(`${matName}を${dropCount}個獲得！`);
     }
+    
+    // --- 通知を表示する処理を追加 ---
+    showToast(`【${task.cat}】ポイント ＋${totalWork}pt`);
+    
+    if (dropCount > 0) {
+        showToast(`${matName} を ${dropCount}個 獲得！`);
+    } else {
+        showToast("作業を記録しました（素材抽出には時間が足りません）");
+    }
+    // ----------------------------
+ 
     closeAllModals();
     renderAll();
 }
@@ -293,12 +304,24 @@ function updateSelectBoxes() {
 }
 
 function updateInventoryUI() {
-    const inv = document.getElementById('inventory'); inv.innerHTML = '';
+    const inv = document.getElementById('inventory');
+    inv.innerHTML = '';
     for (const name in state.inventory) {
         if (state.inventory[name] > 0) {
+            // 素材名から「】」より後ろ（の業火など）を抜き出す
             const suffix = name.split('】')[1];
-            const icon = CONFIG.SUFFIXES.find(s => s.name === suffix)?.icon || "💎";
-            inv.innerHTML += `<div class="item-slot"><span class="item-icon">${icon}</span><span class="item-name">${name}</span><span class="item-count">${state.inventory[name]}</span></div>`;
+            // configから対応する絵文字を探す。なければ💎
+            const suffixData = CONFIG.SUFFIXES.find(s => s.name === suffix);
+            const icon = suffixData ? suffixData.icon : "💎";
+
+            const slot = document.createElement('div');
+            slot.className = 'item-slot'; // CSSのカード型デザインを適用
+            slot.innerHTML = `
+                <span class="item-icon">${icon}</span>
+                <span class="item-name">${name}</span>
+                <span class="item-count">${state.inventory[name]}</span>
+            `;
+            inv.appendChild(slot);
         }
     }
 }
