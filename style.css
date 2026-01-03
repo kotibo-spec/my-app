@@ -227,3 +227,18 @@ input, select {
 
 .pomo-input-group { display: flex; align-items: center; gap: 5px; }
 .pomo-input-group input { width: 50px; text-align: center; border-bottom: 1px solid var(--accent-color); }
+
+.zoom-controls {
+    position: fixed;
+    right: 20px; top: 50%;
+    transform: translateY(-50%);
+    display: flex; flex-direction: column;
+    gap: 10px; z-index: 1100;
+}
+.zoom-controls button {
+    width: 44px; height: 44px;
+    background: rgba(0, 242, 255, 0.2);
+    border: 1px solid var(--accent-color);
+    color: #fff; border-radius: 50%;
+    font-size: 20px; backdrop-filter: blur(5px);
+
