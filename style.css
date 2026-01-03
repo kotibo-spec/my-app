@@ -1,11 +1,15 @@
 /* --- 宇宙・星空の設定 --- */
 :root {
-    --bg-color: #020205; /* 深宇宙の黒 */
+    --bg-color: #020205;
     --card-bg: rgba(10, 10, 20, 0.95);
-    --accent-color: var(--accent-color); /* シアン（星の輝き） */
-    --p-color: #ff0077; /* マゼンタ（警告・レア） */
-    --gold-color: #ffcc00; /* 進化の金 */
-    --star-glow: 0 0 15px rgba(0, 242, 255, 0.8);
+    /* JSから受け取る数字の入れ物。初期値は水色 */
+    --accent-rgb: 0, 242, 255; 
+    /* 上の数字を使って色を作る */
+    --accent-color: rgb(var(--accent-rgb));
+    --p-color: #ff0077;
+    --gold-color: #ffcc00;
+    /* 光り方も属性の色に連動させる */
+    --star-glow: 0 0 15px rgba(var(--accent-rgb), 0.8);
     --safe-top: env(safe-area-inset-top);
     --safe-bottom: env(safe-area-inset-bottom);
 }
@@ -18,11 +22,13 @@
 body {
     background-color: var(--bg-color);
     background-image: 
-        radial-gradient(circle at 50% 50%, rgba(0, 242, 255, 0.05) 0%, transparent 80%),
+        /* ここを 0, 242, 255 から var(--accent-rgb) に変更 */
+        radial-gradient(circle at 50% 50%, rgba(var(--accent-rgb), 0.05) 0%, transparent 80%),
         /* 微細な星の粒子 */
         radial-gradient(1px 1px at 20px 30px, #fff, rgba(0,0,0,0)),
         radial-gradient(1.5px 1.5px at 100px 150px, #fff, rgba(0,0,0,0)),
         radial-gradient(1px 1px at 200px 400px, #fff, rgba(0,0,0,0));
+    /* ...中略（残りの行はそのまま）... */
     background-size: 500px 500px;
     color: var(--text-color);
     font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
@@ -103,11 +109,10 @@ body {
     position: absolute;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    border: 1px border;
-    border: 1px solid rgba(0, 242, 255, 0.3);
     border-radius: 50%;
     pointer-events: none;
-    display: none; /* 初期は非表示 */
+    display: none;
+    border: 1px solid rgba(var(--accent-rgb), 0.3);
 }
 
 /* リング1（内側） */
@@ -254,7 +259,8 @@ input, select {
 /* 素材一つ一つのカード */
 .item-slot {
     background: rgba(255, 255, 255, 0.07);
-    border: 1px solid rgba(0, 242, 255, 0.3);
+    /* ここを 0, 242, 255 から var(--accent-rgb) に変更 */
+    border: 1px solid rgba(var(--accent-rgb), 0.3);
     border-radius: 12px;
     padding: 12px;
     display: flex;
