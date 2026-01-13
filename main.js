@@ -11,7 +11,18 @@ window.onload = () => {
 
 function setupEventListeners() {
     // ナビゲーション
+    /* --- main.js 内 --- */
+
+function setupEventListeners() {
+    // --- ナビゲーション設定 ---
     document.getElementById('btn-report').onclick = () => openModal('modal-report');
+    
+    // 【追加】錬金ボタンを押したら、錬金モーダルを開く
+    document.getElementById('btn-alchemy').onclick = () => {
+        updateInventoryUI(); // 開く前に最新の所持数を描画
+        openModal('modal-alchemy');
+    };
+
     document.getElementById('btn-archive').onclick = () => { renderArchive(); openModal('modal-archive'); };
     document.getElementById('btn-logs').onclick = () => { renderHistory(); openModal('modal-logs'); };
     document.getElementById('btn-tree-manage').onclick = () => openModal('modal-config');
