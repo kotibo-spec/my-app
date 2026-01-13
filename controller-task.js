@@ -1,4 +1,4 @@
-/* --- CONTROLLER-TASK.JS --- */
+/* --- controller-task.js --- */
 
 // 入力タイプの切り替え
 function toggleReportType() {
@@ -7,6 +7,7 @@ function toggleReportType() {
     document.getElementById('input-manual').classList.toggle('hidden', type !== 'manual');
 }
 
+// 報告送信（ログ記録・ポモドーロ対応版）
 function submitTask() {
     const taskName = document.getElementById('task-select').value;
     const reportType = document.getElementById('report-type').value;
@@ -17,15 +18,12 @@ function submitTask() {
     let logDetail = "";
 
     if (reportType === 'pomo') {
-        // ポモドーロ計算
         const workMin = parseInt(document.getElementById('pomo-work').value) || 0;
-        const breakMin = parseInt(document.getElementById('pomo-break').value) || 0; // 休憩時間を取得
+        const breakMin = parseInt(document.getElementById('pomo-break').value) || 0;
         const count = parseInt(document.getElementById('pomo-count').value) || 1;
-        
-        totalWork = workMin * count; // ポイントは作業時間のみで計算
-        logDetail = `${workMin}分(休${breakMin}分)×${count}回`; // ログには休憩も含める
+        totalWork = workMin * count;
+        logDetail = `${workMin}分(休${breakMin}分)×${count}回`;
     } else {
-        // 通常タスク計算
         const diff = document.getElementById('difficulty-select').value;
         const pts = { easy: 30, normal: 100, hard: 200 };
         totalWork = pts[diff];
@@ -62,7 +60,6 @@ function submitTask() {
 
     showToast(`【${task.cat}】＋${totalWork}pt！${dropMsg}`);
     
-    // ログ保存
     state.history.unshift({ 
         date: new Date().toLocaleString('ja-JP'), 
         task: taskName, 
@@ -89,14 +86,25 @@ function evolveCore() {
         totalGainXp += power * 20; 
     }
 
-    if (!hasItems) return showToast("素材がありません");
+    if (!hasItems) return showToast("捧げる素材がありません");
 
     state.inventory = {};
     state.xp += totalGainXp;
-    checkLevelUp();
-    showToast("ステータスと経験値が上昇！");
-    updateRadarChart();
+    
+    // レベルアップ判定
+    let leveledUp = false;
+    while (state.xp >= state.level * 1000) {
+        state.xp -= state.level * 1000;
+        state.level++;
+        leveledUp = true;
+    }
+
+    showToast(leveledUp ? "Lv UP!! 存在が昇華されました。" : "ステータスと経験値が上昇！");
+    
+    // 画面更新
+    if (typeof updateRadarChart === 'function') updateRadarChart();
     renderAll();
+    closeAllModals(); // 錬金画面を閉じる
 }
 
 // 枝の削除
@@ -108,7 +116,7 @@ function deleteCategory(name) {
     renderAll();
 }
 
-// セレクトボックスの同期
+// セレクトボックスの同期（★これがないと起動時に止まります）
 function updateSelectBoxes() {
     const taskSel = document.getElementById('task-select');
     const catSel = document.getElementById('new-task-cat');
