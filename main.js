@@ -1,10 +1,10 @@
-/* --- MAIN.JS --- */
+/* --- main.js --- */
 
 window.onload = () => {
     loadState();
     initChart();
     setupDrag();
-    setupEventListeners();
+    setupEventListeners(); // ここでボタンの設定が走ります
     updateSelectBoxes();
     renderAll();
 };
@@ -13,13 +13,12 @@ function setupEventListeners() {
     // 1. ナビゲーション（下部メニュー）の設定
     document.getElementById('btn-report').onclick = () => openModal('modal-report');
     
-    // ★ここが新しく追加された部分
+    // ★ここが重要！錬金ボタンの設定
     document.getElementById('btn-alchemy').onclick = () => {
-        // 素材リストを最新にしてから開く
         if (typeof updateInventoryUI === 'function') {
-            updateInventoryUI(); 
+            updateInventoryUI(); // 最新の所持数を描画
         }
-        openModal('modal-alchemy');
+        openModal('modal-alchemy'); // モーダルを開く
     };
 
     document.getElementById('btn-archive').onclick = () => { renderArchive(); openModal('modal-archive'); };
@@ -68,26 +67,37 @@ function setupEventListeners() {
 
 // モーダル管理
 function openModal(id) { 
-    document.getElementById(id).classList.remove('hidden'); 
-    if(id === 'modal-status') {
-        updateRadarChart();
-        document.getElementById('profile-title').innerText = document.getElementById('main-title').innerText;
+    const modal = document.getElementById(id);
+    if(modal) {
+        modal.classList.remove('hidden'); 
+        if(id === 'modal-status') {
+            updateRadarChart();
+            // プロフィールのタイトルをメインタイトルと同期
+            const mainTitle = document.getElementById('main-title');
+            const profileTitle = document.getElementById('profile-title');
+            if(mainTitle && profileTitle) profileTitle.innerText = mainTitle.innerText;
+        }
+    } else {
+        console.error("Modal not found: " + id);
     }
 }
+
 function closeAllModals() { document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden')); }
 
 // チャート初期化
 function initChart() {
     const ctx = document.getElementById('statusChart').getContext('2d');
+    const accentRGB = getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim() || "0, 242, 255";
+    
     statusChart = new Chart(ctx, {
         type: 'radar',
         data: {
             labels: CONFIG.ATTR_NAMES,
             datasets: [{
                 data: CONFIG.ATTR_NAMES.map(a => state.stats[a]),
-                backgroundColor: 'rgba(var(--accent-rgb), 0.2)',
-                borderColor: 'rgb(var(--accent-rgb))',
-                pointBackgroundColor: 'rgb(var(--accent-rgb))',
+                backgroundColor: `rgba(${accentRGB}, 0.2)`,
+                borderColor: `rgb(${accentRGB})`,
+                pointBackgroundColor: `rgb(${accentRGB})`,
                 borderWidth: 1
             }]
         },
@@ -100,7 +110,11 @@ function initChart() {
 
 function updateRadarChart() {
     if (!statusChart) return;
+    const accentRGB = getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim();
+    
     statusChart.data.datasets[0].data = CONFIG.ATTR_NAMES.map(a => state.stats[a]);
-    statusChart.data.datasets[0].borderColor = `rgb(${getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb')})`;
+    statusChart.data.datasets[0].borderColor = `rgb(${accentRGB})`;
+    statusChart.data.datasets[0].backgroundColor = `rgba(${accentRGB}, 0.2)`;
+    statusChart.data.datasets[0].pointBackgroundColor = `rgb(${accentRGB})`;
     statusChart.update();
 }
