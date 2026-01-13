@@ -24,19 +24,65 @@ function updateHeader() {
 }
 
 function updateStatusStatsUI() {
-    const container = document.getElementById('sub-titles');
-    let html = '<h3>サブ称号</h3>';
-    html += state.categories.map(c => {
-        if (c.rank === 0) return "";
-        const titleText = (c.rank === 10) ? `真の${c.name}` : `${c.name}${CONFIG.SUB_TITLES[c.rank-1]}`;
-        return `<div style="color:var(--accent-color); font-weight:bold; margin-bottom:5px;">◈ ${titleText}</div>`;
-    }).join('');
+    const container = document.getElementById('status-stats-container');
+    if (!container) return;
 
-    html += '<h3 style="margin-top:20px;">属性値</h3>';
+    let html = '';
+
+    // 1. 属性ステータス（棒グラフ）
+    html += '<h3 style="margin-top:0;">属性値</h3>';
     html += CONFIG.ATTR_NAMES.map(attr => {
         const val = state.stats[attr];
-        const percent = ((val % 500) / 500) * 100;
-        return `<div class="attribute-item"><span>${attr}：${val}</span><div class="attr-gauge-bg"><div class="attr-gauge-fill" style="width: ${percent}%"></div></div></div>`;
+        const percent = Math.min(((val % 500) / 500) * 100, 100);
+        return `
+            <div class="attribute-item">
+                <div class="attr-info">
+                    <span>${attr}属性</span>
+                    <span>${val}</span>
+                </div>
+                <div class="attr-gauge-bg">
+                    <div class="attr-gauge-fill" style="width: ${percent}%"></div>
+                </div>
+            </div>
+        `;
     }).join('');
+
+    // 2. メイン称号一覧（履歴）
+    // 現在の最大属性を特定
+    let maxAttr = "火";
+    let maxVal = -1;
+    CONFIG.ATTR_NAMES.forEach(a => {
+        if (state.stats[a] > maxVal) { maxVal = state.stats[a]; maxAttr = a; }
+    });
+    
+    // 現在のレベルに基づいて、過去のランクをすべて表示
+    html += '<h3 style="margin-top:20px;">メイン称号の記録</h3>';
+    const currentRankIndex = Math.min(state.level - 1, CONFIG.MAIN_RANKS.length - 1);
+    const prefixList = CONFIG.MAIN_PREFIX[maxAttr];
+
+    html += '<div style="display:flex; flex-direction:column-reverse; gap:5px;">'; // 新しいのが上に来るように逆順表示
+    for (let i = 0; i <= currentRankIndex; i++) {
+        const rankName = CONFIG.MAIN_RANKS[i];
+        // プレフィックスはレベルに応じて変化（3レベルごとに変わる計算）
+        const pIndex = Math.min(Math.floor(i / 3), prefixList.length - 1);
+        const prefix = prefixList[pIndex];
+        const fullName = `【${prefix}】${rankName}`;
+        
+        // 最新の称号だけ色を変える
+        const style = (i === currentRankIndex) ? 'color:var(--accent-color); font-weight:bold;' : 'color:#666;';
+        html += `<div style="${style}">Lv.${i + 1} ${fullName}</div>`;
+    }
+    html += '</div>';
+
+    // 3. サブ称号一覧
+    html += '<h3 style="margin-top:20px;">サブ称号（熟練度）</h3>';
+    const subTitles = state.categories.map(c => {
+        if (c.rank === 0) return "";
+        const titleText = (c.rank === 10) ? `真の${c.name}` : `${c.name}${CONFIG.SUB_TITLES[c.rank-1]}`;
+        return `<div style="color:#fff; margin-bottom:5px;">◈ ${titleText} <span style="color:#666; font-size:10px;">(Rank:${c.rank})</span></div>`;
+    }).join('');
+    
+    html += subTitles || '<div style="color:#444; font-size:12px;">まだサブ称号はありません</div>';
+
     container.innerHTML = html;
 }
