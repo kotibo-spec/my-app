@@ -57,10 +57,6 @@ function updateStatusStatsUI() {
     html += '<div style="display:flex; flex-direction:column-reverse; gap:5px;">';
     for (let i = 0; i <= currentRankIndex; i++) {
         const rankName = CONFIG.MAIN_RANKS[i]; // ここで接頭辞(prefix)を付けない
-        
-        // 最新の称号だけ色を明るく、過去のものは暗く
-        const style = (i === currentRankIndex) ? 'color:var(--accent-color); font-weight:bold;' : 'color:#555;';
-        html += `<div style="${style}">Lv.${i + 1} ${rankName}</div>`;
     }
     html += '</div>';
 
@@ -79,10 +75,6 @@ function updateStatusStatsUI() {
         // ランク1から現在のランクまで、全ての称号を生成
         for (let r = 1; r <= c.rank; r++) {
             const titleText = (r === 10) ? `真の${c.name}` : `${c.name}${CONFIG.SUB_TITLES[r-1]}`;
-            
-            // 最新のランクは明るく、過去は暗く
-            const isCurrent = (r === c.rank);
-            const style = isCurrent ? 'color:var(--accent-color); font-weight:bold;' : 'color:#555;';
             
             // リストに追加
             catHistory.push(`<div style="${style} margin-bottom:2px;">◈ ${titleText} <span style="font-size:10px; opacity:0.6;">(Rank:${r})</span></div>`);
