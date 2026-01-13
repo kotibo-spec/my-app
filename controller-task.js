@@ -7,7 +7,6 @@ function toggleReportType() {
     document.getElementById('input-manual').classList.toggle('hidden', type !== 'manual');
 }
 
-// 報告送信
 function submitTask() {
     const taskName = document.getElementById('task-select').value;
     const reportType = document.getElementById('report-type').value;
@@ -18,11 +17,15 @@ function submitTask() {
     let logDetail = "";
 
     if (reportType === 'pomo') {
+        // ポモドーロ計算
         const workMin = parseInt(document.getElementById('pomo-work').value) || 0;
+        const breakMin = parseInt(document.getElementById('pomo-break').value) || 0; // 休憩時間を取得
         const count = parseInt(document.getElementById('pomo-count').value) || 1;
-        totalWork = workMin * count;
-        logDetail = `${workMin}分 × ${count}セット`;
+        
+        totalWork = workMin * count; // ポイントは作業時間のみで計算
+        logDetail = `${workMin}分(休${breakMin}分)×${count}回`; // ログには休憩も含める
     } else {
+        // 通常タスク計算
         const diff = document.getElementById('difficulty-select').value;
         const pts = { easy: 30, normal: 100, hard: 200 };
         totalWork = pts[diff];
@@ -58,7 +61,16 @@ function submitTask() {
     }
 
     showToast(`【${task.cat}】＋${totalWork}pt！${dropMsg}`);
-    state.history.unshift({ date: new Date().toLocaleString('ja-JP'), task: taskName, cat: task.cat, detail: logDetail, point: totalWork });
+    
+    // ログ保存
+    state.history.unshift({ 
+        date: new Date().toLocaleString('ja-JP'), 
+        task: taskName, 
+        cat: task.cat, 
+        detail: logDetail, 
+        point: totalWork 
+    });
+    
     closeAllModals();
     renderAll();
 }
