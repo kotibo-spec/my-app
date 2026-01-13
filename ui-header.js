@@ -1,4 +1,5 @@
-/* --- UI-HEADER.JS --- */
+/* --- ui-header.js --- */
+
 function updateHeader() {
     const mainTitle = document.getElementById('main-title');
     const userLevel = document.getElementById('user-level');
@@ -10,17 +11,17 @@ function updateHeader() {
         if (state.stats[a] > maxVal) { maxVal = state.stats[a]; maxAttr = a; }
     });
 
-    updateThemeColor(maxAttr);
+    if (typeof updateThemeColor === 'function') updateThemeColor(maxAttr);
 
     const prefixList = CONFIG.MAIN_PREFIX[maxAttr];
     const prefix = prefixList[Math.min(Math.floor((state.level - 1) / 3), prefixList.length - 1)];
     const rankName = CONFIG.MAIN_RANKS[Math.min(state.level - 1, CONFIG.MAIN_RANKS.length - 1)];
     
-    mainTitle.innerText = `【${prefix}】${rankName}`;
-    userLevel.innerText = state.level;
+    if (mainTitle) mainTitle.innerText = `【${prefix}】${rankName}`;
+    if (userLevel) userLevel.innerText = state.level;
 
     const nextXp = state.level * 1000; 
-    xpBar.style.width = Math.min((state.xp / nextXp) * 100, 100) + "%";
+    if (xpBar) xpBar.style.width = Math.min((state.xp / nextXp) * 100, 100) + "%";
 }
 
 function updateStatusStatsUI() {
@@ -29,7 +30,7 @@ function updateStatusStatsUI() {
 
     let html = '';
 
-    // 1. 属性ステータス（棒グラフ）
+    // 1. 属性ステータス
     html += '<h3 style="margin-top:0;">属性値</h3>';
     html += CONFIG.ATTR_NAMES.map(attr => {
         const val = state.stats[attr];
@@ -47,34 +48,29 @@ function updateStatusStatsUI() {
         `;
     }).join('');
 
-    // 2. メイン称号一覧（履歴）
-    // 現在の最大属性を特定
+    // 2. メイン称号履歴
     let maxAttr = "火";
     let maxVal = -1;
     CONFIG.ATTR_NAMES.forEach(a => {
         if (state.stats[a] > maxVal) { maxVal = state.stats[a]; maxAttr = a; }
     });
     
-    // 現在のレベルに基づいて、過去のランクをすべて表示
     html += '<h3 style="margin-top:20px;">メイン称号の記録</h3>';
     const currentRankIndex = Math.min(state.level - 1, CONFIG.MAIN_RANKS.length - 1);
     const prefixList = CONFIG.MAIN_PREFIX[maxAttr];
 
-    html += '<div style="display:flex; flex-direction:column-reverse; gap:5px;">'; // 新しいのが上に来るように逆順表示
+    html += '<div style="display:flex; flex-direction:column-reverse; gap:5px;">';
     for (let i = 0; i <= currentRankIndex; i++) {
         const rankName = CONFIG.MAIN_RANKS[i];
-        // プレフィックスはレベルに応じて変化（3レベルごとに変わる計算）
         const pIndex = Math.min(Math.floor(i / 3), prefixList.length - 1);
         const prefix = prefixList[pIndex];
         const fullName = `【${prefix}】${rankName}`;
-        
-        // 最新の称号だけ色を変える
         const style = (i === currentRankIndex) ? 'color:var(--accent-color); font-weight:bold;' : 'color:#666;';
         html += `<div style="${style}">Lv.${i + 1} ${fullName}</div>`;
     }
     html += '</div>';
 
-    // 3. サブ称号一覧
+    // 3. サブ称号
     html += '<h3 style="margin-top:20px;">サブ称号（熟練度）</h3>';
     const subTitles = state.categories.map(c => {
         if (c.rank === 0) return "";
