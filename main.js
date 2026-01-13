@@ -10,16 +10,15 @@ window.onload = () => {
 };
 
 function setupEventListeners() {
-    // ナビゲーション
-    /* --- main.js 内 --- */
-
-function setupEventListeners() {
-    // --- ナビゲーション設定 ---
+    // 1. ナビゲーション（下部メニュー）の設定
     document.getElementById('btn-report').onclick = () => openModal('modal-report');
     
-    // 【追加】錬金ボタンを押したら、錬金モーダルを開く
+    // ★ここが新しく追加された部分
     document.getElementById('btn-alchemy').onclick = () => {
-        updateInventoryUI(); // 開く前に最新の所持数を描画
+        // 素材リストを最新にしてから開く
+        if (typeof updateInventoryUI === 'function') {
+            updateInventoryUI(); 
+        }
         openModal('modal-alchemy');
     };
 
@@ -28,32 +27,43 @@ function setupEventListeners() {
     document.getElementById('btn-tree-manage').onclick = () => openModal('modal-config');
     document.getElementById('btn-settings').onclick = () => openModal('modal-settings');
     
-    // アクション
-    document.getElementById('btn-submit-task').onclick = submitTask;
-    document.getElementById('btn-evolve').onclick = evolveCore;
-    document.getElementById('core-circle').onclick = () => openModal('modal-status');
-    
-    // 管理
-    document.getElementById('btn-add-category').onclick = () => {
-        const name = document.getElementById('new-cat-name').value.trim();
-        if (name && !state.categories.find(c => c.name === name)) {
-            state.categories.push({ name: name, points: 0, rank: 0 });
-            document.getElementById('new-cat-name').value = "";
-            updateSelectBoxes(); renderAll();
-            showToast("新たな星系が誕生。");
-        }
-    };
+    // 2. アクションボタンの設定
+    const btnSubmit = document.getElementById('btn-submit-task');
+    if (btnSubmit) btnSubmit.onclick = submitTask;
 
-    document.getElementById('btn-add-task').onclick = () => {
-        const name = document.getElementById('new-task-name').value.trim();
-        const cat = document.getElementById('new-task-cat').value;
-        const attr = document.getElementById('new-task-suffix').value;
-        if (name && cat && attr) {
-            state.tasks.push({ name: name, cat: cat, attr: attr }); 
-            document.getElementById('new-task-name').value = "";
-            updateSelectBoxes(); showToast(`タスク「${name}」を登録`);
-        }
-    };
+    const btnEvolve = document.getElementById('btn-evolve');
+    if (btnEvolve) btnEvolve.onclick = evolveCore;
+
+    const coreCircle = document.getElementById('core-circle');
+    if (coreCircle) coreCircle.onclick = () => openModal('modal-status');
+    
+    // 3. 管理画面の追加ボタン設定
+    const btnAddCat = document.getElementById('btn-add-category');
+    if (btnAddCat) {
+        btnAddCat.onclick = () => {
+            const name = document.getElementById('new-cat-name').value.trim();
+            if (name && !state.categories.find(c => c.name === name)) {
+                state.categories.push({ name: name, points: 0, rank: 0 });
+                document.getElementById('new-cat-name').value = "";
+                updateSelectBoxes(); renderAll();
+                showToast("新たな星系が誕生。");
+            }
+        };
+    }
+
+    const btnAddTask = document.getElementById('btn-add-task');
+    if (btnAddTask) {
+        btnAddTask.onclick = () => {
+            const name = document.getElementById('new-task-name').value.trim();
+            const cat = document.getElementById('new-task-cat').value;
+            const attr = document.getElementById('new-task-suffix').value;
+            if (name && cat && attr) {
+                state.tasks.push({ name: name, cat: cat, attr: attr }); 
+                document.getElementById('new-task-name').value = "";
+                updateSelectBoxes(); showToast(`タスク「${name}」を登録`);
+            }
+        };
+    }
 }
 
 // モーダル管理
