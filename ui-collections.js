@@ -1,12 +1,28 @@
 /* --- UI-COLLECTIONS.JS --- */
+
 function updateInventoryUI() {
     const inv = document.getElementById('inventory');
     if (!inv) return;
     inv.innerHTML = '';
+
     const validKeys = Object.keys(state.inventory).filter(k => state.inventory[k]?.rarity);
+
+    // ソート順：レアリティ(高->低) > 属性(定義順) > 名前(あいうえお順)
     validKeys.sort((a, b) => {
+        const itemA = state.inventory[a];
+        const itemB = state.inventory[b];
+
+        // 1. レアリティ比較
         const order = { UR: 0, SSR: 1, SR: 2, R: 3, N: 4 };
-        return (order[state.inventory[a].rarity] ?? 99) - (order[state.inventory[b].rarity] ?? 99);
+        const rareDiff = (order[itemA.rarity] ?? 99) - (order[itemB.rarity] ?? 99);
+        if (rareDiff !== 0) return rareDiff;
+
+        // 2. 属性比較
+        const attrOrder = CONFIG.ATTR_NAMES.indexOf(itemA.attr) - CONFIG.ATTR_NAMES.indexOf(itemB.attr);
+        if (attrOrder !== 0) return attrOrder;
+
+        // 3. 名前比較
+        return a.localeCompare(b, 'ja');
     });
 
     for (const name of validKeys) {
